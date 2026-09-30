@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #242426;
+  --color-primaryLight: #EEEEEE;
+  --color-secondary: #2E2F31;
+  --color-tertiary: #E63946;
+  --color-gray-10: #EEEEEE;
+  --color-gray-20: #A2A2A2;
+  --color-gray-30: #7B7B7B;
+  --color-gray-50: #585858;
+  --color-gray-90: #141414;
+
+  --breakpoint-xs: 400px;
+  --breakpoint-3xl: 1680px;
+  --breakpoint-4xl: 2200px;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+@keyframes marquee-reverse {
+  0%   { transform: translateX(-33.333%); }
+  100% { transform: translateX(0); }
+}
+
+.marquee-track {
+  animation: marquee 28s linear infinite;
+  width: max-content;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-track-reverse {
+  animation: marquee-reverse 32s linear infinite;
+  width: max-content;
+}
+
+.marquee-track-reverse:hover {
+  animation-play-state: paused;
+}
+
+.max-padd-container {
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flexBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5rem;
+}
+
+.h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
