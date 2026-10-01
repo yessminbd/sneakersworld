@@ -1,3 +1,5 @@
+import { useLang } from "../context/LangContext";
+
 const brands = [
   {
     name: 'Adidas',
@@ -87,18 +89,20 @@ const brands = [
 const track = [...brands, ...brands, ...brands];
 
 export default function Partners() {
+  const { t } = useLang();
+
   return (
     <section className="py-16 bg-primaryLight overflow-hidden">
       {/* Header */}
       <div className="max-padd-container mb-10 text-center">
         <p className="text-tertiary text-xs font-bold uppercase tracking-[4px] mb-2">
-          Trusted Partners
+          {t.trustedPartners}
         </p>
         <h2 className="text-primary text-3xl font-black tracking-tight">
-          The World&apos;s Best Brands
+          {t.bestBrands}
         </h2>
         <p className="text-gray-50 text-sm mt-2 max-w-sm mx-auto">
-          We carry only authentic gear from the top names in sneaker culture.
+          {t.bestBrandsSub}
         </p>
       </div>
 

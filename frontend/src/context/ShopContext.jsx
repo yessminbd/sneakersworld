@@ -12,42 +12,50 @@ const defaultProducts = [
   {
     _id: "sw_01",
     name: "Adidas Campus 00s Pink",
-    category: "Adidas",
+    category: "Women",
+    subCategory: "Adidas",
     price: 380,
     description: "Iconic suede silhouette with bold pink contrast and retro chunky laces.",
     image: [slide1],
     popular: true,
     sizes: ["36", "37", "38", "39", "40", "41"],
+    colors: ["Pink", "White"],
   },
   {
     _id: "sw_02",
     name: "New Balance 530 White Silver",
-    category: "New Balance",
+    category: "Men",
+    subCategory: "New Balance",
     price: 420,
     description: "Classic running shoe aesthetic with ABZORB cushioning for all-day comfort.",
     image: [slide2],
     popular: true,
     sizes: ["38", "39", "40", "41", "42", "43", "44"],
+    colors: ["White", "Silver", "Grey"],
   },
   {
     _id: "sw_03",
     name: "On Cloudmonster All Black",
-    category: "On Running",
+    category: "Men",
+    subCategory: "On Running",
     price: 540,
     description: "Maximum CloudTec cushioning for monster bounce and premium street look.",
     image: [slide3],
     popular: true,
     sizes: ["40", "41", "42", "43", "44", "45"],
+    colors: ["Black"],
   },
   {
     _id: "sw_04",
     name: "Puma Speedcat OG Red",
-    category: "Puma",
+    category: "Women",
+    subCategory: "Puma",
     price: 350,
     description: "Motorsport heritage with rich red suede and timeless racing profile.",
     image: [slide4],
     popular: true,
     sizes: ["39", "40", "41", "42", "43"],
+    colors: ["Red", "White"],
   },
 ];
 
@@ -60,23 +68,37 @@ export default function ShopContextProvider({ children }) {
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
 
   // Ajouter au panier
-  const addToCart = async (itemId, size) => {
+  const addToCart = async (itemId, size, color = 'Standard', qty = 1) => {
     if (!size) {
       toast.error('Please select a size!', { autoClose: 2000 });
       return;
     }
 
+    const colorKey = color || 'Standard';
+    const amount = Number(qty) > 0 ? Number(qty) : 1;
     let cartData = structuredClone(cartItems);
 
     if (cartData[itemId]) {
       if (cartData[itemId][size]) {
-        cartData[itemId][size] += 1;
+        if (typeof cartData[itemId][size] === 'object' && cartData[itemId][size] !== null) {
+          if (cartData[itemId][size][colorKey]) {
+            cartData[itemId][size][colorKey] += amount;
+          } else {
+            cartData[itemId][size][colorKey] = amount;
+          }
+        } else {
+          const prev = Number(cartData[itemId][size]) || 0;
+          cartData[itemId][size] = { [colorKey]: prev + amount };
+        }
       } else {
-        cartData[itemId][size] = 1;
+        cartData[itemId][size] = { [colorKey]: amount };
       }
     } else {
-      cartData[itemId] = {};
-      cartData[itemId][size] = 1;
+      cartData[itemId] = {
+        [size]: {
+          [colorKey]: amount,
+        },
+      };
     }
     setCartItems(cartData);
     toast.success('Added to cart successfully!', { autoClose: 2000 });
@@ -85,11 +107,18 @@ export default function ShopContextProvider({ children }) {
   // Compter le nombre d'articles dans le panier
   const getCartCount = () => {
     let totalCount = 0;
-    for (const items in cartItems) {
-      for (const item in cartItems[items]) {
+    for (const itemId in cartItems) {
+      for (const size in cartItems[itemId]) {
         try {
-          if (cartItems[items][item] > 0) {
-            totalCount += cartItems[items][item];
+          const itemVal = cartItems[itemId][size];
+          if (typeof itemVal === 'number' && itemVal > 0) {
+            totalCount += itemVal;
+          } else if (typeof itemVal === 'object' && itemVal !== null) {
+            for (const col in itemVal) {
+              if (itemVal[col] > 0) {
+                totalCount += itemVal[col];
+              }
+            }
           }
         } catch (error) {
           console.log(error);
@@ -100,21 +129,68 @@ export default function ShopContextProvider({ children }) {
   };
 
   // Mettre à jour la quantité
-  const updateQuantity = async (itemId, size, quantity) => {
+  const updateQuantity = async (itemId, size, colorOrQuantity, newQuantity) => {
     let cartData = structuredClone(cartItems);
-    cartData[itemId][size] = quantity;
+
+    if (newQuantity !== undefined) {
+      const color = colorOrQuantity || 'Standard';
+      const quantity = newQuantity;
+      if (cartData[itemId] && cartData[itemId][size]) {
+        if (typeof cartData[itemId][size] === 'object') {
+          if (quantity <= 0) {
+            delete cartData[itemId][size][color];
+            if (Object.keys(cartData[itemId][size]).length === 0) {
+              delete cartData[itemId][size];
+            }
+          } else {
+            cartData[itemId][size][color] = quantity;
+          }
+        }
+      }
+    } else {
+      const quantity = colorOrQuantity;
+      if (cartData[itemId] && cartData[itemId][size]) {
+        if (typeof cartData[itemId][size] === 'number') {
+          if (quantity <= 0) {
+            delete cartData[itemId][size];
+          } else {
+            cartData[itemId][size] = quantity;
+          }
+        } else if (typeof cartData[itemId][size] === 'object') {
+          if (quantity <= 0) {
+            delete cartData[itemId][size];
+          } else {
+            const firstCol = Object.keys(cartData[itemId][size])[0] || 'Standard';
+            cartData[itemId][size][firstCol] = quantity;
+          }
+        }
+      }
+    }
+
+    if (cartData[itemId] && Object.keys(cartData[itemId]).length === 0) {
+      delete cartData[itemId];
+    }
+
     setCartItems(cartData);
   };
 
   // Calculer le montant total
   const getCartAmount = () => {
     let totalAmount = 0;
-    for (const items in cartItems) {
-      let itemInfo = products.find((product) => product._id === items);
-      for (const item in cartItems[items]) {
+    for (const itemId in cartItems) {
+      let itemInfo = products.find((product) => product._id === itemId);
+      if (!itemInfo) continue;
+      for (const size in cartItems[itemId]) {
         try {
-          if (cartItems[items][item] > 0) {
-            totalAmount += itemInfo.price * cartItems[items][item];
+          const itemVal = cartItems[itemId][size];
+          if (typeof itemVal === 'number' && itemVal > 0) {
+            totalAmount += itemInfo.price * itemVal;
+          } else if (typeof itemVal === 'object' && itemVal !== null) {
+            for (const col in itemVal) {
+              if (itemVal[col] > 0) {
+                totalAmount += itemInfo.price * itemVal[col];
+              }
+            }
           }
         } catch (error) {
           console.log(error);

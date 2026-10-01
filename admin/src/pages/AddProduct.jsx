@@ -18,7 +18,7 @@ const AddProduct = ({ token }) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
-  const [category, setCategory] = useState('Men')
+  const [selectedCategories, setSelectedCategories] = useState(['Men'])
   const [subCategory, setSubCategory] = useState('Nike')
   const [popular, setPopular] = useState(false)
   const [images, setImages] = useState([null, null, null, null])
@@ -57,10 +57,16 @@ const AddProduct = ({ token }) => {
     toast.success(`Brand "${brand}" added.`)
   }
 
+  const toggleCategory = (cat) =>
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    )
+
   const resetForm = () => {
     setName('')
     setDescription('')
     setPrice('')
+    setSelectedCategories(['Men'])
     setSelectedSizes([])
     setSelectedColors([])
     setImages([null, null, null, null])
@@ -69,6 +75,7 @@ const AddProduct = ({ token }) => {
 
   const onSubmitHandler = async (e) => {
     e.preventDefault()
+    if (selectedCategories.length === 0) return toast.error('Select at least one category.')
     if (selectedSizes.length === 0) return toast.error('Select at least one size.')
     if (selectedColors.length === 0) return toast.error('Select at least one color.')
     if (!images[0]) return toast.error('Add at least one image.')
@@ -79,7 +86,7 @@ const AddProduct = ({ token }) => {
       formData.append('name', name)
       formData.append('description', description)
       formData.append('price', price)
-      formData.append('category', category)
+      formData.append('category', JSON.stringify(selectedCategories))
       formData.append('subCategory', subCategory)
       formData.append('sizes', JSON.stringify(selectedSizes))
       formData.append('colors', JSON.stringify(selectedColors))
@@ -168,11 +175,22 @@ const AddProduct = ({ token }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={label}>Category</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className={field}>
+              <div className="flex flex-wrap gap-2 mt-1">
                 {CATEGORIES.map((c) => (
-                  <option key={c}>{c}</option>
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleCategory(c)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      selectedCategories.includes(c)
+                        ? 'bg-[#1f1f23] text-white border-[#1f1f23]'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                    }`}
+                  >
+                    {c}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
             <BrandSelector
               brands={brands}

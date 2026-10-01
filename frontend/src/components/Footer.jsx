@@ -1,11 +1,11 @@
-import { ArrowRight, MapPin, Mail, Phone, ShieldCheck } from "lucide-react";
+import { MapPin, Mail, Phone, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useLang } from "../context/LangContext";
 import logo from "../assets/logo-sneakers-world.png";
 
-// TODO: remplacer par le lien réel après l'hébergement du panel admin
-// (ou définir VITE_ADMIN_URL dans le fichier .env du frontend)
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || "#";
 
-// Inline social SVGs (lucide-react does not bundle brand icons)
+// Inline social SVGs
 const InstagramIcon = ({ className = "w-4 h-4" }) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
@@ -33,49 +33,58 @@ const YoutubeIcon = ({ className = "w-4 h-4" }) => (
     </svg>
 );
 
-const footerLinks = {
-    Shop: [
-        { label: "New Arrivals", href: "/collection" },
-        { label: "Collection", href: "/collection" },
-        { label: "Best Sellers", href: "/collection" },
-        { label: "Sale", href: "/collection" },
-    ],
-    Company: [
-        { label: "About Us", href: "/about" },
-        { label: "Contact", href: "/contact" },
-        { label: "Orders", href: "/orders" },
-        { label: "Track Order", href: "/orders" },
-    ],
-    Support: [
-        { label: "FAQ", href: "/contact" },
-        { label: "Returns", href: "/contact" },
-        { label: "Size Guide", href: "/collection" },
-        { label: "Shipping Info", href: "/contact" },
-    ],
-};
-
 const socials = [
-    { Icon: InstagramIcon, href: "#", label: "Instagram" },
+    { Icon: InstagramIcon, href: "https://www.instagram.com/sneakersworld913/", label: "Instagram" },
     { Icon: TwitterIcon, href: "#", label: "Twitter" },
     { Icon: FacebookIcon, href: "#", label: "Facebook" },
     { Icon: YoutubeIcon, href: "#", label: "Youtube" },
 ];
 
 export default function Footer() {
+    const { t } = useLang();
+
+    const footerSections = [
+        {
+            category: t.shopSection,
+            links: [
+                { label: t.newArrivals, href: "/collection" },
+                { label: t.collection, href: "/collection" },
+                { label: t.bestSellers, href: "/collection" },
+                { label: t.sale, href: "/collection" },
+            ],
+        },
+        {
+            category: t.companySection,
+            links: [
+                { label: t.aboutUs, href: "/about" },
+                { label: t.contact, href: "/about" },
+                { label: t.ordersTitle, href: "/profile" },
+                { label: t.trackOrder, href: "/profile" },
+            ],
+        },
+        {
+            category: t.supportSection,
+            links: [
+                { label: t.faq, href: "/about" },
+                { label: t.returns, href: "/about" },
+                { label: t.sizeGuide, href: "/collection" },
+                { label: t.shippingInfo, href: "/about" },
+            ],
+        },
+    ];
+
     return (
         <footer className="bg-primary text-primaryLight">
-
-
             {/* Main footer grid */}
             <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
 
                 {/* Brand column */}
                 <div className="lg:col-span-2 flex flex-col gap-5">
-                    <a href="/" className="inline-block transition-opacity hover:opacity-80">
+                    <Link to="/" className="inline-block transition-opacity hover:opacity-80">
                         <img src={logo} alt="Sneakers World" className="h-8 w-auto" />
-                    </a>
+                    </Link>
                     <p className="text-sm text-white/50 leading-relaxed max-w-xs">
-                        Explore the latest sneaker trends with us
+                        {t.footerSlogan}
                     </p>
 
                     {/* Contact info */}
@@ -110,20 +119,20 @@ export default function Footer() {
                 </div>
 
                 {/* Links columns */}
-                {Object.entries(footerLinks).map(([category, links]) => (
-                    <div key={category}>
+                {footerSections.map((sec, idx) => (
+                    <div key={idx}>
                         <h3 className="text-xs font-bold tracking-widest uppercase text-white/30 mb-4">
-                            {category}
+                            {sec.category}
                         </h3>
                         <ul className="flex flex-col gap-3">
-                            {links.map((link) => (
+                            {sec.links.map((link) => (
                                 <li key={link.label}>
-                                    <a
-                                        href={link.href}
+                                    <Link
+                                        to={link.href}
                                         className="text-sm text-white/60 hover:text-tertiary transition-colors duration-200"
                                     >
                                         {link.label}
-                                    </a>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
@@ -134,10 +143,10 @@ export default function Footer() {
             {/* Bottom bar */}
             <div className="border-t border-white/10">
                 <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
-                    <p>© {new Date().getFullYear()} Sneakers World. All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} Sneakers World. {t.rightsReserved}</p>
                     <div className="flex items-center gap-6">
-                        <a href="#" className="hover:text-white/60 transition-colors">Privacy Policy</a>
-                        <a href="#" className="hover:text-white/60 transition-colors">Terms of Service</a>
+                        <span className="hover:text-white/60 transition-colors cursor-pointer">{t.privacyPolicy}</span>
+                        <span className="hover:text-white/60 transition-colors cursor-pointer">{t.termsOfService}</span>
                         <a
                             href={ADMIN_URL}
                             target="_blank"
@@ -145,7 +154,7 @@ export default function Footer() {
                             className="flex items-center gap-1.5 hover:text-white/60 transition-colors"
                         >
                             <ShieldCheck className="w-3.5 h-3.5" />
-                            Admin Panel
+                            {t.adminPanel}
                         </a>
                     </div>
                 </div>

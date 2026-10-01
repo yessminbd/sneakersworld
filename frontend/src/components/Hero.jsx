@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useLang } from "../context/LangContext";
 import sneaker1 from "../assets/slide1.jpg";
 import sneaker2 from "../assets/slide2.jpg";
 import sneaker3 from "../assets/slide3.jpg";
@@ -33,6 +35,7 @@ const slides = [
 ];
 
 export default function Hero() {
+  const { t } = useLang();
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -48,8 +51,8 @@ export default function Hero() {
 
   // Trigger entrance animation on mount
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setVisible(true), 80);
+    return () => clearTimeout(timer);
   }, []);
 
   // Auto-slide every 4 seconds
@@ -87,7 +90,7 @@ export default function Hero() {
             style={anim(0).style}
           >
             <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
-            New Season 2026
+            {t.heroBadge}
           </span>
 
           {/* Title */}
@@ -96,9 +99,9 @@ export default function Hero() {
             style={anim(150).style}
           >
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-primary">
-              Step Into
+              {t.heroTitle1}
               <br />
-              <span className="text-tertiary">Your World.</span>
+              <span className="text-tertiary">{t.heroTitle2}</span>
             </h1>
           </div>
 
@@ -107,9 +110,7 @@ export default function Hero() {
             className={`text-base md:text-lg text-gray-50 leading-relaxed max-w-md ${anim(300).className}`}
             style={anim(300).style}
           >
-            Discover the finest selection of premium sneakers in Tunisia — where
-            street style meets luxury. Limited drops, iconic silhouettes, curated
-            for those who dare to stand out.
+            {t.heroDesc}
           </p>
 
           {/* Buttons */}
@@ -117,20 +118,20 @@ export default function Hero() {
             className={`flex flex-wrap items-center gap-4 ${anim(450).className}`}
             style={anim(450).style}
           >
-            <a
-              href="/collection"
+            <Link
+              to="/collection"
               className="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-primary text-primaryLight text-sm font-semibold hover:bg-tertiary transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-tertiary/30"
             >
-              New Collection
+              {t.newCollectionBtn}
               <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
+            </Link>
 
-            <a
-              href="/login"
+            <Link
+              to="/login"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full border-2 border-primary text-primary text-sm font-semibold hover:border-tertiary hover:text-tertiary transition-all duration-300 hover:scale-105 active:scale-95"
             >
-              Join Us
-            </a>
+              {t.joinUsBtn}
+            </Link>
           </div>
         </div>
 

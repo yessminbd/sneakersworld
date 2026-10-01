@@ -11,6 +11,7 @@ import PlaceOrder from "./pages/PlaceOrder";
 import Verify from "./pages/Verify";
 import About from "./pages/About";
 import Product from "./pages/Product";
+import Profile from "./pages/Profile";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/place-order" element={<PlaceOrder />} />
         <Route path="/verify" element={<Verify />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/product/:productId" element={<Product />} />
       </Routes>
       <Footer />

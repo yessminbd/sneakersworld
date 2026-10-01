@@ -1,12 +1,66 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import { Trash2, Search, PackageSearch, Loader2, Star, X, AlertTriangle } from 'lucide-react'
+import { Trash2, Pencil, Search, PackageSearch, Loader2, Star, X, AlertTriangle } from 'lucide-react'
 
-import { BACKEND_URL, COLORS } from '../components/constants'
+import { BACKEND_URL, COLORS, CATEGORIES } from '../components/constants'
 import { card, field } from '../components/styles'
+import EditProductModal from '../components/EditProductModal'
 
 const colorHex = (name) => COLORS.find((c) => c.name === name)?.hex
+
+const normalizeCategories = (cat) => {
+  if (!cat) return []
+  let items = []
+
+  if (Array.isArray(cat)) {
+    items = cat.flatMap((c) => {
+      if (typeof c === 'string' && c.startsWith('[') && c.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(c)
+          return Array.isArray(parsed) ? parsed : [c]
+        } catch {
+          return [c]
+        }
+      }
+      return c !== undefined && c !== null ? [c] : []
+    })
+  } else if (typeof cat === 'string') {
+    const trimmed = cat.trim()
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) {
+          items = parsed
+        } else {
+          items = [trimmed]
+        }
+      } catch {
+        items = [trimmed]
+      }
+    } else if (trimmed.includes(',')) {
+      items = trimmed.split(',')
+    } else if (trimmed) {
+      items = [trimmed]
+    }
+  }
+
+  // Deduplicate and canonicalize casing
+  const uniqueMap = new Map()
+  items.forEach((item) => {
+    if (!item) return
+    const str = String(item).trim()
+    if (!str) return
+    const std = CATEGORIES.find((c) => c.toLowerCase() === str.toLowerCase())
+    const canonical = std || (str.charAt(0).toUpperCase() + str.slice(1))
+    const key = canonical.toLowerCase()
+    if (!uniqueMap.has(key)) {
+      uniqueMap.set(key, canonical)
+    }
+  })
+
+  return Array.from(uniqueMap.values())
+}
 
 /* ---------- Delete confirmation modal ---------- */
 const DeleteModal = ({ product, onCancel, onConfirm, deleting }) => {
@@ -77,6 +131,7 @@ const ListProducts = ({ token }) => {
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('All')
   const [toDelete, setToDelete] = useState(null)
+  const [toEdit, setToEdit] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
   const fetchProducts = async () => {
@@ -117,14 +172,34 @@ const ListProducts = ({ token }) => {
     }
   }
 
-  const categories = useMemo(() => ['All', ...new Set(products.map((p) => p.category))], [products])
+  const handleProductUpdated = (updated) => {
+    setProducts((prev) => prev.map((p) => (p._id === updated._id ? updated : p)))
+  }
+
+  const categories = useMemo(() => {
+    const unique = new Map()
+    products.forEach((p) => {
+      normalizeCategories(p.category).forEach((c) => {
+        const key = c.toLowerCase()
+        if (!unique.has(key)) {
+          unique.set(key, c)
+        }
+      })
+    })
+    return ['All', ...Array.from(unique.values())]
+  }, [products])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return products.filter((p) => {
       const matchSearch =
-        !q || p.name.toLowerCase().includes(q) || p.subCategory?.toLowerCase().includes(q)
-      const matchCat = filterCat === 'All' || p.category === filterCat
+        !q ||
+        p.name?.toLowerCase().includes(q) ||
+        p.subCategory?.toLowerCase().includes(q)
+      const pCats = normalizeCategories(p.category)
+      const matchCat =
+        filterCat === 'All' ||
+        pCats.some((c) => c.toLowerCase() === filterCat.toLowerCase())
       return matchSearch && matchCat
     })
   }, [products, search, filterCat])
@@ -188,8 +263,8 @@ const ListProducts = ({ token }) => {
       ) : (
         <div className={`${card} !p-0 overflow-hidden`}>
           {/* Table header (desktop) */}
-          <div className="hidden md:grid grid-cols-[64px_1fr_110px_120px_110px_44px] gap-4 px-5 py-3 border-b border-black/5 bg-[#efefef]/60">
-            {['Image', 'Product', 'Category', 'Brand', 'Price', ''].map((h) => (
+          <div className="hidden md:grid grid-cols-[64px_1fr_130px_110px_100px_90px] gap-4 px-5 py-3 border-b border-black/5 bg-[#efefef]/60">
+            {['Image', 'Product', 'Category', 'Brand', 'Price', 'Actions'].map((h) => (
               <span key={h} className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-500">
                 {h}
               </span>
@@ -200,7 +275,7 @@ const ListProducts = ({ token }) => {
           {filtered.map((p) => (
             <div
               key={p._id}
-              className="grid grid-cols-[64px_1fr_44px] md:grid-cols-[64px_1fr_110px_120px_110px_44px] gap-4 px-5 py-3.5 items-center border-b border-black/5 last:border-0 hover:bg-[#efefef]/40 transition-colors"
+              className="grid grid-cols-[64px_1fr_80px] md:grid-cols-[64px_1fr_130px_110px_100px_90px] gap-4 px-5 py-3.5 items-center border-b border-black/5 last:border-0 hover:bg-[#efefef]/40 transition-colors"
             >
               {/* Image */}
               <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#efefef] border border-black/5">
@@ -218,7 +293,7 @@ const ListProducts = ({ token }) => {
 
                 {/* Mobile info */}
                 <p className="md:hidden text-xs text-gray-500 font-medium mt-0.5">
-                  {p.category} · {p.subCategory} ·{' '}
+                  {normalizeCategories(p.category).join(', ') || '—'} · {p.subCategory} ·{' '}
                   <span className="font-bold text-[#1f1f23]">{p.price} TND</span>
                 </p>
 
@@ -245,23 +320,60 @@ const ListProducts = ({ token }) => {
               </div>
 
               {/* Desktop columns */}
-              <span className="hidden md:block text-xs text-gray-600 font-semibold">{p.category}</span>
+              <div className="hidden md:flex flex-wrap gap-1 items-center">
+                {normalizeCategories(p.category).length > 0 ? (
+                  normalizeCategories(p.category).map((cat) => (
+                    <span
+                      key={cat}
+                      className="px-2 py-0.5 rounded-md bg-[#1f1f23]/5 text-[#1f1f23] text-xs font-semibold"
+                    >
+                      {cat}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-400 font-semibold">—</span>
+                )}
+              </div>
               <span className="hidden md:block text-xs text-gray-600 font-semibold">{p.subCategory}</span>
               <span className="hidden md:block text-sm font-extrabold text-[#1f1f23]">{p.price} TND</span>
 
-              {/* Delete */}
-              <button
-                onClick={() => setToDelete(p)}
-                aria-label={`Delete ${p.name}`}
-                className="w-9 h-9 rounded-xl bg-[#e63946]/10 text-[#e63946] hover:bg-[#e63946] hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-              >
-                <Trash2 size={14} />
-              </button>
+              {/* Actions: Edit + Delete */}
+              <div className="flex items-center gap-1.5 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setToEdit(p)}
+                  aria-label={`Edit ${p.name}`}
+                  title="Edit product"
+                  className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-[#1f1f23] text-gray-700 hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setToDelete(p)}
+                  aria-label={`Delete ${p.name}`}
+                  title="Delete product"
+                  className="w-9 h-9 rounded-xl bg-[#e63946]/10 text-[#e63946] hover:bg-[#e63946] hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* Edit Modal */}
+      {toEdit && (
+        <EditProductModal
+          product={toEdit}
+          token={token}
+          onClose={() => setToEdit(null)}
+          onUpdated={handleProductUpdated}
+        />
+      )}
+
+      {/* Delete Modal */}
       <DeleteModal
         product={toDelete}
         onCancel={() => setToDelete(null)}

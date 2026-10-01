@@ -1,5 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
+import { useLang } from '../context/LangContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -19,6 +20,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const { setToken, backendUrl } = useContext(ShopContext);
+  const { t } = useLang();
   const navigate = useNavigate();
 
   const resetForm = () => {
@@ -46,8 +48,7 @@ export default function Login() {
         const data = await response.json();
 
         if (data.success) {
-          // Pas de connexion automatique : on vide le formulaire et on retourne à Login
-          toast.success('Account created successfully! Please log in.');
+          toast.success(t.accountCreatedSuccess);
           switchState('Login');
         } else {
           toast.error(data.message);
@@ -65,12 +66,12 @@ export default function Login() {
           localStorage.setItem('token', data.token);
 
           if (data.role === 'admin') {
-            toast.success('Bienvenue Admin ! Redirection...');
+            toast.success(t.welcomeAdmin);
             setTimeout(() => {
               window.location.href = ADMIN_URL;
             }, 1000);
           } else {
-            toast.success('Welcome back!');
+            toast.success(t.welcomeBack);
             navigate('/');
           }
         } else {
@@ -78,7 +79,7 @@ export default function Login() {
         }
       }
     } catch (error) {
-      toast.error('Server error, please try again.');
+      toast.error(t.serverError);
       console.error(error);
     } finally {
       setLoading(false);
@@ -105,14 +106,14 @@ export default function Login() {
         <div className="absolute bottom-10 left-10 right-10 z-20">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/80 text-xs font-semibold tracking-widest uppercase mb-4">
             <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
-            New Season 2026
+            {t.heroBadge}
           </div>
           <h2 className="text-3xl font-black text-white leading-tight">
-            Step Into<br />
-            <span className="text-tertiary">Your World.</span>
+            {t.heroTitle1}<br />
+            <span className="text-tertiary">{t.heroTitle2}</span>
           </h2>
           <p className="text-white/50 text-sm mt-2">
-            Premium authentic sneakers, delivered across Tunisia.
+            {t.deliveryAcrossTunisia}
           </p>
         </div>
       </div>
@@ -123,12 +124,12 @@ export default function Login() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-black text-primary tracking-tight">
-              {currentState === 'Login' ? 'Welcome Back 👋' : 'Join Us 🔥'}
+              {currentState === 'Login' ? t.loginTitle : t.signupTitle}
             </h1>
             <p className="text-gray-50 text-sm mt-2">
               {currentState === 'Login'
-                ? 'Log in to access your orders and wishlist.'
-                : 'Create an account and start shopping the latest drops.'}
+                ? t.loginSubtitle
+                : t.signupSubtitle}
             </p>
           </div>
 
@@ -136,32 +137,32 @@ export default function Login() {
           <form onSubmit={onSubmitHandler} className="flex flex-col gap-4">
             {currentState === 'Sign Up' && (
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-gray-50">Full Name</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-gray-50">{t.fullName}</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t.namePlaceholder}
                   className={inputClass}
                 />
               </div>
             )}
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-50">Email</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-50">{t.email}</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder={t.emailPlaceholder}
                 className={inputClass}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-50">Password</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-gray-50">{t.passwordLabel}</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -169,7 +170,7 @@ export default function Login() {
                   minLength={currentState === 'Sign Up' ? 8 : undefined}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={currentState === 'Sign Up' ? 'Min. 8 characters' : '••••••••'}
+                  placeholder={currentState === 'Sign Up' ? t.passwordMinLength : t.passwordPlaceholder}
                   className={`${inputClass} pr-11`}
                 />
                 <button
@@ -185,7 +186,7 @@ export default function Login() {
             {currentState === 'Login' && (
               <div className="text-right -mt-1">
                 <button type="button" className="text-xs text-tertiary font-semibold hover:underline">
-                  Forgot password?
+                  {t.forgotPassword}
                 </button>
               </div>
             )}
@@ -198,12 +199,12 @@ export default function Login() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Please wait...
+                  {t.processing}
                 </>
               ) : currentState === 'Login' ? (
-                'Log In'
+                t.signIn
               ) : (
-                'Create Account'
+                t.signUp
               )}
             </button>
           </form>
@@ -211,7 +212,7 @@ export default function Login() {
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-gray-10" />
-            <span className="text-xs text-gray-30 font-medium">or</span>
+            <span className="text-xs text-gray-30 font-medium">{t.orContinue}</span>
             <div className="flex-1 h-px bg-gray-10" />
           </div>
 
@@ -219,24 +220,24 @@ export default function Login() {
           <p className="text-center text-sm text-gray-50">
             {currentState === 'Login' ? (
               <>
-                Don&apos;t have an account?{' '}
+                {t.noAccount}{' '}
                 <button
                   type="button"
                   onClick={() => switchState('Sign Up')}
                   className="text-primary font-bold hover:text-tertiary transition-colors"
                 >
-                  Sign Up
+                  {t.signUp}
                 </button>
               </>
             ) : (
               <>
-                Already have an account?{' '}
+                {t.hasAccount}{' '}
                 <button
                   type="button"
                   onClick={() => switchState('Login')}
                   className="text-primary font-bold hover:text-tertiary transition-colors"
                 >
-                  Log In
+                  {t.signIn}
                 </button>
               </>
             )}

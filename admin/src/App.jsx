@@ -7,8 +7,10 @@ import './index.css'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import AddProduct from './pages/AddProduct'
+import EditProduct from './pages/EditProduct'
 import ListProducts from './pages/ListProducts'
 import Orders from './pages/Orders'
+import Promos from './pages/Promos'
 import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
 
@@ -40,8 +42,10 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Dashboard token={token} />} />
               <Route path="/add" element={<AddProduct token={token} />} />
+              <Route path="/edit/:id" element={<EditProduct token={token} />} />
               <Route path="/list" element={<ListProducts token={token} />} />
               <Route path="/orders" element={<Orders token={token} />} />
+              <Route path="/promos" element={<Promos token={token} />} />
             </Routes>
           </main>
         </div>

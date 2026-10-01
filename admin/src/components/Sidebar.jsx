@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   LogOut,
   ChevronLeft,
+  Tag,
 } from 'lucide-react'
 
 const Sidebar = ({ onLogout }) => {
@@ -17,6 +18,7 @@ const Sidebar = ({ onLogout }) => {
     { to: '/add', icon: <PackagePlus size={20} />, label: 'Add Product' },
     { to: '/list', icon: <List size={20} />, label: 'Products' },
     { to: '/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
+    { to: '/promos', icon: <Tag size={20} />, label: 'Codes Promo' },
   ]
 
   const linkBase =

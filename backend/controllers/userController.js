@@ -94,6 +94,21 @@ const adminLogin = async (req, res) => {
 
     }
 }
-export { loginUser, registerUser, adminLogin }
+// get user profile
+const getProfile = async (req, res) => {
+    try {
+        const { userId } = req.body
+        const user = await userModel.findById(userId).select('name email')
+        if (!user) {
+            return res.json({ success: false, message: 'Utilisateur introuvable' })
+        }
+        res.json({ success: true, user: { name: user.name, email: user.email } })
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+export { loginUser, registerUser, adminLogin, getProfile }
 
 

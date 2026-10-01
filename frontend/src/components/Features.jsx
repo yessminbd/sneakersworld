@@ -1,48 +1,51 @@
-import { Truck, ShieldCheck, BadgePercent, CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { Truck, ShieldCheck, BadgePercent, CheckCircle2 } from "lucide-react";
+import { useLang } from "../context/LangContext";
 
 export default function Features() {
+  const { t } = useLang();
+
   const features = [
     {
       icon: Truck,
-      title: "Fast Delivery",
-      subtitle: "Across Tunisia",
-      badge: "24-48h Express",
+      title: t.fastDeliveryTitle,
+      subtitle: t.fastDeliverySub,
+      badge: t.fastDeliveryBadge,
       dotColor: "bg-emerald-500",
-      description: "Fast, reliable shipping right to your doorstep anywhere in Tunisia.",
+      description: t.fastDeliveryDesc,
       points: [
-        "Delivered to all 24 governorates",
-        "Real-time SMS & phone tracking",
-        "Pay on delivery (Cash on Delivery)",
+        t.fastDeliveryP1,
+        t.fastDeliveryP2,
+        t.fastDeliveryP3,
       ],
-      footerNote: "Dispatches daily from Tunis",
+      footerNote: t.fastDeliveryNote,
     },
     {
       icon: ShieldCheck,
-      title: "High Quality",
-      subtitle: "100% Authentic",
-      badge: "Guaranteed Original",
+      title: t.highQualityTitle,
+      subtitle: t.highQualitySub,
+      badge: t.highQualityBadge,
       dotColor: "bg-blue-500",
-      description: "Only genuine sneakers sourced directly from verified international partners.",
+      description: t.highQualityDesc,
       points: [
-        "10-point physical inspection",
-        "Original box, SKU & factory laces",
-        "Zero fakes, zero compromises",
+        t.highQualityP1,
+        t.highQualityP2,
+        t.highQualityP3,
       ],
-      footerNote: "Certified authenticity check",
+      footerNote: t.highQualityNote,
     },
     {
       icon: BadgePercent,
-      title: "Best Price",
-      subtitle: "True Local Rates",
-      badge: "No Hidden Fees",
+      title: t.bestPriceTitle,
+      subtitle: t.bestPriceSub,
+      badge: t.bestPriceBadge,
       dotColor: "bg-tertiary",
-      description: "Transparent pricing in Tunisian Dinar with no unexpected customs markups.",
+      description: t.bestPriceDesc,
       points: [
-        "Direct-to-consumer pricing in TND",
-        "No international customs surprises",
-        "Exclusive member drops & discounts",
+        t.bestPriceP1,
+        t.bestPriceP2,
+        t.bestPriceP3,
       ],
-      footerNote: "Price match assurance",
+      footerNote: t.bestPriceNote,
     },
   ];
 
@@ -54,13 +57,13 @@ export default function Features() {
         <div className="text-center max-w-2xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-gray-10 shadow-xs text-xs font-bold uppercase tracking-wider text-tertiary mb-3">
             <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
-            The Sneakers World Guarantee
+            {t.guaranteeBadge}
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-primary tracking-tight">
-            Why Sneakerheads Choose Us
+            {t.whyChooseUs}
           </h2>
           <p className="mt-3 text-sm md:text-base text-gray-50">
-            Premium authentic sneakers with fast delivery and the best rates in Tunisia.
+            {t.whyChooseUsSub}
           </p>
         </div>
 

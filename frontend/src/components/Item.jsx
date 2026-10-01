@@ -24,9 +24,12 @@ const Item = ({ product }) => {
             {/* Product Info */}
             <div className='p-4 flex flex-col flex-1 justify-between'>
                 <div>
-                    <span className='text-[11px] font-bold uppercase tracking-wider text-gray-30'>
-                        {product.category}
-                    </span>
+                    <div className='flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-50'>
+                        <span className='text-tertiary'>{product.subCategory || product.category}</span>
+                        {product.subCategory && product.category && (
+                            <span className='text-gray-30 text-[10px]'>{product.category}</span>
+                        )}
+                    </div>
                     <h4 className='text-base font-bold text-primary line-clamp-1 mt-0.5 group-hover:text-tertiary transition-colors'>
                         {product.name}
                     </h4>
