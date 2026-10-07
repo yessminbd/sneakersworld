@@ -138,7 +138,7 @@ export default function Footer() {
                         <span className="hover:text-white/60 transition-colors cursor-pointer">{t.privacyPolicy}</span>
                         <span className="hover:text-white/60 transition-colors cursor-pointer">{t.termsOfService}</span>
                         <a
-                            href={ADMIN_URL}
+                            href="https://sneakersworldadminpanel.vercel.app/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 hover:text-white/60 transition-colors"
