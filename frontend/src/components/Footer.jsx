@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useLang } from "../context/LangContext";
 import logo from "../assets/logo-sneakers-world.png";
 
-const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || "#";
+const ADMIN_URL = import.meta.env.VITE_ADMIN_URL || "https://sneakersworld-delta.vercel.app/";
 
 // Inline social SVGs
 const InstagramIcon = ({ className = "w-4 h-4" }) => (
