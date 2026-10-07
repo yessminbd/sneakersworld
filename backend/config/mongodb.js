@@ -1,32 +1,48 @@
 import mongoose from "mongoose";
 
-let isConnected = false;
+// Cache the connection promise across serverless invocations (Vercel)
+let cached = global.mongoose;
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+}
 
 const connectDB = async () => {
-    if (isConnected) {
-        console.log("MongoDB is already connected");
-        return;
+    // Return existing connection immediately
+    if (cached.conn && mongoose.connection.readyState === 1) {
+        return cached.conn;
     }
 
-    try {
-        const mongoUrl = process.env.MONGO_URL;
-        console.log("MONGO_URL exists:", !!mongoUrl);
-        if (!mongoUrl) {
-            throw new Error("MONGO_URL is not defined in .env file");
-        }
+    const mongoUrl = process.env.MONGO_URL;
+    if (!mongoUrl) {
+        throw new Error("MONGO_URL is not defined in environment variables");
+    }
 
-        const db = await mongoose.connect(mongoUrl, {
+    // Re-use in-flight connection promise if already connecting
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(mongoUrl, {
             serverSelectionTimeoutMS: 30000,
             connectTimeoutMS: 30000,
             socketTimeoutMS: 45000,
+            bufferCommands: false, // ← Désactive le buffering pour forcer une erreur explicite
+        }).then((m) => {
+            console.log("MongoDB connected successfully");
+            return m;
+        }).catch((err) => {
+            cached.promise = null; // Reset so the next request retries
+            console.error("MongoDB connection failed:", err.message);
+            throw err;
         });
-
-        isConnected = db.connections[0].readyState === 1;
-        console.log("MongoDB connected successfully");
-    } catch (error) {
-        console.error("MongoDB connection failed:", error.message);
-        console.error("=> Vérifiez: 1) Votre IP dans Atlas Network Access, 2) Cluster non pausé, 3) MONGO_URL correct dans .env");
     }
+
+    try {
+        cached.conn = await cached.promise;
+    } catch (err) {
+        cached.promise = null;
+        throw err;
+    }
+
+    return cached.conn;
 };
 
 export default connectDB;
+

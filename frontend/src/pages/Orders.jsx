@@ -170,13 +170,24 @@ export default function Orders() {
     if (!token) return;
     silent ? setRefreshing(true) : setLO(true);
     try {
-      const res  = await fetch(`${backendUrl}/api/order/user-orders`, { method: 'POST', headers: { token, 'Content-Type': 'application/json' } });
+      const res  = await fetch(`${backendUrl}/api/order/user-orders`, {
+        method: 'POST',
+        headers: { token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
       const data = await res.json();
-      if (data.success) {
-        setOrders([...(data.orders || [])].sort((a, b) => b.date - a.date));
+      if (data.success && Array.isArray(data.orders)) {
+        const sorted = [...data.orders].sort((a, b) => b.date - a.date);
+        setOrders(sorted);
         setLast(new Date());
+        
+        // Auto-open the first/most recent order by default
+        if (sorted.length > 0) {
+          const firstKey = String(sorted[0]._id || `order-0-${sorted[0].date || ''}`);
+          setOpenOrderIds(prev => ({ [firstKey]: true, ...prev }));
+        }
       }
-    } catch (e) { console.warn(e); }
+    } catch (e) { console.warn("Error fetching orders:", e); }
     finally { setLO(false); setRefreshing(false); }
   }, [token, backendUrl]);
 

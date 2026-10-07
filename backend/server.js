@@ -30,7 +30,17 @@ app.use(cors({
   credentials: true,
 }))
 
-connectDB()
+// ← Garantit la connexion MongoDB avant CHAQUE requête (crucial pour Vercel serverless)
+app.use(async (req, res, next) => {
+    try {
+        await connectDB()
+        next()
+    } catch (err) {
+        console.error("DB connection error:", err.message)
+        res.status(503).json({ success: false, message: "Service temporairement indisponible, réessayez." })
+    }
+})
+
 connectCloudinary()
 
 // API route
@@ -51,3 +61,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default app;
+
