@@ -10,7 +10,17 @@ import { toast } from "react-toastify";
 import { useLang } from "../context/LangContext";
 
 /* ─────────────────────────────────────────────
-   Modal de confirmation de commande
+   Tunisia's 24 governorates
+───────────────────────────────────────────── */
+const TUNISIA_GOVERNORATES = [
+  "Ariana", "Béja", "Ben Arous", "Bizerte", "Gabès", "Gafsa",
+  "Jendouba", "Kairouan", "Kasserine", "Kébili", "Le Kef", "Mahdia",
+  "La Manouba", "Médenine", "Monastir", "Nabeul", "Sfax", "Sidi Bouzid",
+  "Siliana", "Sousse", "Tataouine", "Tozeur", "Tunis", "Zaghouan",
+];
+
+/* ─────────────────────────────────────────────
+   Order confirmation modal
 ───────────────────────────────────────────── */
 function ConfirmOrderModal({ isOpen, onClose, onConfirm, cartData, products, subtotal, delivery_fee, currency, formData, paymentMethod, loading, discount, promoCode, t }) {
   const total = subtotal === 0 ? 0 : Math.max(0, subtotal - discount) + delivery_fee;
@@ -158,12 +168,18 @@ function ConfirmOrderModal({ isOpen, onClose, onConfirm, cartData, products, sub
 }
 
 /* ─────────────────────────────────────────────
-   Page PlaceOrder (Checkout)
+   PlaceOrder page (Checkout)
 ───────────────────────────────────────────── */
 export default function PlaceOrder() {
   const { products, currency, cartItems, getCartAmount, delivery_fee, token, backendUrl, setCartItems } = useContext(ShopContext);
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login?redirect=place-order');
+    }
+  }, [token, navigate]);
 
   const [cartData, setCartData] = useState([]);
   useEffect(() => {
@@ -190,7 +206,7 @@ export default function PlaceOrder() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Code promo
+  // Promo code
   const [promoCode, setPromoCode] = useState("");
   const [promoInput, setPromoInput] = useState("");
   const [promoDiscount, setPromoDiscount] = useState(0);
@@ -202,6 +218,18 @@ export default function PlaceOrder() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "phone") {
+      // Uniquement des chiffres, max 8
+      const cleaned = value.replace(/\D/g, "").slice(0, 8);
+      setFormData((prev) => ({ ...prev, [name]: cleaned }));
+      return;
+    }
+    if (name === "zipCode") {
+      // Uniquement des chiffres, max 4
+      const cleaned = value.replace(/\D/g, "").slice(0, 4);
+      setFormData((prev) => ({ ...prev, [name]: cleaned }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -242,6 +270,23 @@ export default function PlaceOrder() {
     for (const field of required) {
       if (!formData[field].trim()) { toast.error(t.fillAllFields); return; }
     }
+
+    // Validation du numéro de téléphone (exactement 8 chiffres)
+    const phoneClean = formData.phone.replace(/\D/g, "");
+    if (phoneClean.length !== 8) {
+      toast.error(t.invalidPhone || "Le numéro de téléphone doit comporter 8 chiffres.");
+      return;
+    }
+
+    // Validation du code postal (exactement 4 chiffres si renseigné)
+    if (formData.zipCode.trim()) {
+      const zipClean = formData.zipCode.replace(/\D/g, "");
+      if (zipClean.length !== 4) {
+        toast.error(t.invalidZipCode || "Le code postal doit comporter 4 chiffres.");
+        return;
+      }
+    }
+
     setShowModal(true);
   };
 
@@ -342,7 +387,7 @@ export default function PlaceOrder() {
 
             <div className="flex-1 w-full flex flex-col gap-6">
 
-              {/* Infos personnelles */}
+              {/* Personal info */}
               <div className="bg-white/80 backdrop-blur rounded-3xl border border-gray-10 shadow-sm p-6">
                 <div className="flex items-center gap-2.5 mb-5">
                   <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -353,27 +398,39 @@ export default function PlaceOrder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="firstName" className={labelClass}>{t.firstName} <span className="text-tertiary">*</span></label>
-                    <input id="firstName" name="firstName" type="text" required value={formData.firstName} onChange={handleChange} placeholder="Ahmed" className={inputClass} />
+                    <input id="firstName" name="firstName" type="text" required value={formData.firstName} onChange={handleChange} placeholder={t.firstNamePlaceholder} className={inputClass} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="lastName" className={labelClass}>{t.lastName} <span className="text-tertiary">*</span></label>
-                    <input id="lastName" name="lastName" type="text" required value={formData.lastName} onChange={handleChange} placeholder="Ben Ali" className={inputClass} />
+                    <input id="lastName" name="lastName" type="text" required value={formData.lastName} onChange={handleChange} placeholder={t.lastNamePlaceholder} className={inputClass} />
                   </div>
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <label htmlFor="email" className={labelClass}>{t.email}</label>
-                    <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder="ahmed@example.com" className={inputClass} />
+                    <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} placeholder={t.emailPlaceholder} className={inputClass} />
                   </div>
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <label htmlFor="phone" className={labelClass}>{t.phone} <span className="text-tertiary">*</span></label>
                     <div className="relative">
                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-30" />
-                      <input id="phone" name="phone" type="tel" required value={formData.phone} onChange={handleChange} placeholder="+216 XX XXX XXX" className={`w-full pl-10 pr-4 py-3 rounded-xl border border-gray-10 bg-primaryLight text-primary text-sm font-medium focus:outline-none focus:border-primary focus:bg-white transition-all placeholder:text-gray-30`} />
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={8}
+                        pattern="[0-9]{8}"
+                        required
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder={lang === 'fr' ? 'Ex: 98123456 (8 chiffres)' : 'e.g. 98123456 (8 digits)'}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-10 bg-primaryLight text-primary text-sm font-medium focus:outline-none focus:border-primary focus:bg-white transition-all placeholder:text-gray-30"
+                      />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Adresse */}
+              {/* Address */}
               <div className="bg-white/80 backdrop-blur rounded-3xl border border-gray-10 shadow-sm p-6">
                 <div className="flex items-center gap-2.5 mb-5">
                   <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -384,19 +441,35 @@ export default function PlaceOrder() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5 sm:col-span-2">
                     <label htmlFor="street" className={labelClass}>{t.street} <span className="text-tertiary">*</span></label>
-                    <input id="street" name="street" type="text" required value={formData.street} onChange={handleChange} placeholder="12 Rue de la République" className={inputClass} />
+                    <input id="street" name="street" type="text" required value={formData.street} onChange={handleChange} placeholder={t.streetPlaceholder} className={inputClass} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="city" className={labelClass}>{t.city} <span className="text-tertiary">*</span></label>
-                    <input id="city" name="city" type="text" required value={formData.city} onChange={handleChange} placeholder="Tunis" className={inputClass} />
+                    <input id="city" name="city" type="text" required value={formData.city} onChange={handleChange} placeholder={t.cityPlaceholder} className={inputClass} />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="state" className={labelClass}>{t.governorate}</label>
-                    <input id="state" name="state" type="text" value={formData.state} onChange={handleChange} placeholder="Tunis" className={inputClass} />
+                    <select id="state" name="state" value={formData.state} onChange={handleChange} className={`${inputClass} cursor-pointer`}>
+                      <option value="">{t.governoratePlaceholder}</option>
+                      {TUNISIA_GOVERNORATES.map((gov) => (
+                        <option key={gov} value={gov}>{gov}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="zipCode" className={labelClass}>{t.postalCode}</label>
-                    <input id="zipCode" name="zipCode" type="text" value={formData.zipCode} onChange={handleChange} placeholder="1000" className={inputClass} />
+                    <input
+                      id="zipCode"
+                      name="zipCode"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={4}
+                      pattern="[0-9]{4}"
+                      value={formData.zipCode}
+                      onChange={handleChange}
+                      placeholder={lang === 'fr' ? 'Ex: 1000' : 'e.g. 1000'}
+                      className={inputClass}
+                    />
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="country" className={labelClass}>{t.country}</label>
@@ -405,7 +478,7 @@ export default function PlaceOrder() {
                 </div>
               </div>
 
-              {/* Paiement */}
+              {/* Payment */}
               <div className="bg-white/80 backdrop-blur rounded-3xl border border-gray-10 shadow-sm p-6">
                 <div className="flex items-center gap-2.5 mb-5">
                   <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -447,7 +520,7 @@ export default function PlaceOrder() {
               </div>
             </div>
 
-            {/* Récapitulatif sticky */}
+            {/* Sticky summary */}
             <div className="w-full lg:w-[360px] lg:sticky lg:top-24 flex flex-col gap-4">
               <div className="bg-primary text-white p-6 rounded-3xl shadow-xl">
                 <h3 className="text-lg font-black mb-5 uppercase tracking-wider">{t.summary}</h3>
@@ -472,7 +545,7 @@ export default function PlaceOrder() {
                 </div>
                 <hr className="border-white/10 mb-4" />
 
-                {/* Code promo */}
+                {/* Promo code */}
                 {promoCode ? (
                   <div className="mb-4 flex items-center justify-between bg-green-500/20 border border-green-500/30 rounded-xl px-3 py-2.5">
                     <div className="flex items-center gap-2">

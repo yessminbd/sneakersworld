@@ -1,31 +1,63 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { Save, Loader2, ArrowLeft, Trash2 } from 'lucide-react'
 
+import { BACKEND_URL } from '../components/constants'
 import { useLocalList } from '../hooks/useLocalList'
-import { BACKEND_URL, CATEGORIES, BRANDS, SIZES, COLORS } from '../components/constants'
 import { card, sectionTitle, label, field } from '../components/styles'
 import ImageUpload from '../components/ImageUpload'
 import BrandSelector from '../components/BrandSelector'
 import ColorPicker from '../components/ColorPicker'
 import SizeSelector from '../components/SizeSelector'
 
+// ── Helpers (no hardcoded data) ─────────────────────────────────
+// Normalizes values that may be an array, a JSON string, a single value or empty
+const toArray = (value) => {
+  if (Array.isArray(value)) return value
+  if (!value) return []
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : [value]
+    } catch {
+      return [value]
+    }
+  }
+  return [value]
+}
+
+const colorName = (c) => (c && typeof c === 'object' ? c.name : c)
+
+const uniq = (arr) => {
+  const seen = new Set()
+  return arr.filter((v) => {
+    if (v === undefined || v === null || v === '') return false
+    const key = String(v).toLowerCase().trim()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+const sortNatural = (arr) =>
+  [...arr].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }))
+
 const EditProduct = ({ token }) => {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [product, setProduct] = useState(null)
+  const [catalog, setCatalog] = useState([]) // all products, used to build the options
   const [fetching, setFetching] = useState(true)
   const [loading, setLoading] = useState(false)
 
-  // Form fields
+  // Form fields (empty until the product is loaded)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState(['Men'])
-  const [subCategory, setSubCategory] = useState('Nike')
+  const [selectedCategories, setSelectedCategories] = useState([])
+  const [subCategory, setSubCategory] = useState('')
   const [popular, setPopular] = useState(false)
 
   const [selectedSizes, setSelectedSizes] = useState([])
@@ -33,12 +65,12 @@ const EditProduct = ({ token }) => {
   const [existingImages, setExistingImages] = useState([])
   const [newImages, setNewImages] = useState([null, null, null, null])
 
-  // Lists
-  const [brands, addBrand] = useLocalList('customBrands', BRANDS)
-  const [sizes, addSize] = useLocalList('customSizes', SIZES)
-  const [colors, addColor] = useLocalList('customColors', COLORS, (c) => c.name.toLowerCase())
+  // Custom entries added by the admin (stored locally), no built-in defaults
+  const [customBrands, addBrand] = useLocalList('customBrands', [])
+  const [customSizes, addSize] = useLocalList('customSizes', [])
+  const [customColors, addColor] = useLocalList('customColors', [], (c) => c.name.toLowerCase())
 
-  // Fetch product data
+  // Fetch the product being edited
   useEffect(() => {
     const fetchProduct = async () => {
       setFetching(true)
@@ -46,27 +78,15 @@ const EditProduct = ({ token }) => {
         const res = await axios.get(`${BACKEND_URL}/api/product/single?productId=${id}`)
         if (res.data.success && res.data.product) {
           const p = res.data.product
-          setProduct(p)
           setName(p.name || '')
           setDescription(p.description || '')
-          setPrice(p.price || '')
-          let initCats = ['Men']
-          if (Array.isArray(p.category)) {
-            initCats = p.category
-          } else if (p.category) {
-            try {
-              const parsed = JSON.parse(p.category)
-              initCats = Array.isArray(parsed) ? parsed : [p.category]
-            } catch {
-              initCats = [p.category]
-            }
-          }
-          setSelectedCategories(initCats)
-          setSubCategory(p.subCategory || 'Nike')
+          setPrice(p.price ?? '')
+          setSelectedCategories(toArray(p.category))
+          setSubCategory(p.subCategory || '')
           setPopular(Boolean(p.popular))
-          setSelectedSizes(p.sizes || [])
-          setSelectedColors(p.colors || [])
-          setExistingImages(p.image || [])
+          setSelectedSizes(toArray(p.sizes))
+          setSelectedColors(toArray(p.colors).map(colorName).filter(Boolean))
+          setExistingImages(toArray(p.image))
         } else {
           toast.error('Product not found')
           navigate('/list')
@@ -81,6 +101,75 @@ const EditProduct = ({ token }) => {
     fetchProduct()
   }, [id, navigate])
 
+  // Fetch all products to build dynamic options (brands, categories, sizes, colors)
+  useEffect(() => {
+    let cancelled = false
+    axios
+      .get(`${BACKEND_URL}/api/product/list`)
+      .then((res) => {
+        if (!cancelled && res.data.success) setCatalog(res.data.products || [])
+      })
+      .catch(() => {
+        // Non-blocking: the form still works with the product's own values
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // ── Dynamic options ───────────────────────────────────────────
+  const categories = useMemo(
+    () =>
+      sortNatural(
+        uniq([...catalog.flatMap((p) => toArray(p.category)), ...selectedCategories])
+      ),
+    [catalog, selectedCategories]
+  )
+
+  const brands = useMemo(
+    () =>
+      sortNatural(
+        uniq([
+          ...catalog.map((p) => p.subCategory?.trim()),
+          ...toArray(customBrands),
+          subCategory,
+        ])
+      ),
+    [catalog, customBrands, subCategory]
+  )
+
+  const sizes = useMemo(
+    () =>
+      sortNatural(
+        uniq([
+          ...catalog.flatMap((p) => toArray(p.sizes)),
+          ...toArray(customSizes),
+          ...selectedSizes,
+        ])
+      ),
+    [catalog, customSizes, selectedSizes]
+  )
+
+  const colors = useMemo(() => {
+    // Keep full color objects (name + any extra data) when available
+    const byName = new Map()
+    const register = (c) => {
+      const n = colorName(c)
+      if (!n) return
+      const key = String(n).toLowerCase().trim()
+      const existing = byName.get(key)
+      // Prefer richer objects over plain names
+      if (!existing || (typeof c === 'object' && typeof existing !== 'object')) {
+        byName.set(key, typeof c === 'object' ? c : { name: n })
+      }
+    }
+    catalog.forEach((p) => toArray(p.colors).forEach(register))
+    toArray(customColors).forEach(register)
+    selectedColors.forEach(register)
+    return [...byName.values()].sort((a, b) => a.name.localeCompare(b.name))
+  }, [catalog, customColors, selectedColors])
+
+  // ── Handlers ──────────────────────────────────────────────────
   const toggle = (setter) => (item) =>
     setter((prev) => (prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]))
 
@@ -116,6 +205,7 @@ const EditProduct = ({ token }) => {
   const onSubmitHandler = async (e) => {
     e.preventDefault()
     if (selectedCategories.length === 0) return toast.error('Select at least one category.')
+    if (!subCategory) return toast.error('Select a brand.')
     if (selectedSizes.length === 0) return toast.error('Select at least one size.')
     if (selectedColors.length === 0) return toast.error('Select at least one color.')
     if (existingImages.length === 0 && !newImages.some(Boolean)) {
@@ -173,7 +263,7 @@ const EditProduct = ({ token }) => {
         <div>
           <Link
             to="/list"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-primary mb-2 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-[#e63946] mb-2 transition-colors"
           >
             <ArrowLeft size={14} /> Back to Products
           </Link>
@@ -188,14 +278,17 @@ const EditProduct = ({ token }) => {
         {/* Images */}
         <div className={card}>
           <h3 className={sectionTitle}>Product Images</h3>
-          
+
           {/* Existing Images */}
           {existingImages.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-bold text-gray-600 mb-2">Current Photos</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {existingImages.map((url, i) => (
-                  <div key={i} className="relative group aspect-square rounded-2xl overflow-hidden border border-black/10 bg-[#efefef]">
+                  <div
+                    key={url}
+                    className="relative group aspect-square rounded-2xl overflow-hidden border border-black/10 bg-[#efefef]"
+                  >
                     <img src={url} alt={`Existing ${i + 1}`} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
@@ -272,7 +365,10 @@ const EditProduct = ({ token }) => {
             <div>
               <label className={label}>Categories</label>
               <div className="flex gap-2 flex-wrap">
-                {CATEGORIES.map((c) => (
+                {categories.length === 0 && (
+                  <span className="text-xs text-gray-400">No categories available.</span>
+                )}
+                {categories.map((c) => (
                   <button
                     key={c}
                     type="button"

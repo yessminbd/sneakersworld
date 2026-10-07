@@ -125,7 +125,7 @@ const DeleteModal = ({ product, onCancel, onConfirm, deleting }) => {
 }
 
 /* ---------- Page ---------- */
-const ListProducts = ({ token }) => {
+const ListProducts = ({ token, globalSearch }) => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -190,7 +190,7 @@ const ListProducts = ({ token }) => {
   }, [products])
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = (search || globalSearch || '').trim().toLowerCase()
     return products.filter((p) => {
       const matchSearch =
         !q ||
@@ -202,7 +202,7 @@ const ListProducts = ({ token }) => {
         pCats.some((c) => c.toLowerCase() === filterCat.toLowerCase())
       return matchSearch && matchCat
     })
-  }, [products, search, filterCat])
+  }, [products, search, globalSearch, filterCat])
 
   if (loading)
     return (

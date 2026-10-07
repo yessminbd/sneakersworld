@@ -35,9 +35,7 @@ const YoutubeIcon = ({ className = "w-4 h-4" }) => (
 
 const socials = [
     { Icon: InstagramIcon, href: "https://www.instagram.com/sneakersworld913/", label: "Instagram" },
-    { Icon: TwitterIcon, href: "#", label: "Twitter" },
     { Icon: FacebookIcon, href: "#", label: "Facebook" },
-    { Icon: YoutubeIcon, href: "#", label: "Youtube" },
 ];
 
 export default function Footer() {
@@ -59,7 +57,7 @@ export default function Footer() {
                 { label: t.aboutUs, href: "/about" },
                 { label: t.contact, href: "/about" },
                 { label: t.ordersTitle, href: "/profile" },
-                { label: t.trackOrder, href: "/profile" },
+                { label: t.trackOrder, href: "/orders" },
             ],
         },
         {
@@ -67,7 +65,7 @@ export default function Footer() {
             links: [
                 { label: t.faq, href: "/about" },
                 { label: t.returns, href: "/about" },
-                { label: t.sizeGuide, href: "/collection" },
+                { label: t.sizeGuide, href: "/size-guide" },
                 { label: t.shippingInfo, href: "/about" },
             ],
         },
@@ -91,15 +89,7 @@ export default function Footer() {
                     <div className="flex flex-col gap-2 text-sm text-white/50">
                         <span className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-tertiary shrink-0" />
-                            Tunisia
-                        </span>
-                        <span className="flex items-center gap-2">
-                            <Mail className="w-4 h-4 text-tertiary shrink-0" />
-                            contact@sneakersworld.tn
-                        </span>
-                        <span className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-tertiary shrink-0" />
-                            +216 XX XXX XXX
+                        Tunisia
                         </span>
                     </div>
 

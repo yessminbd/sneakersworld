@@ -1,6 +1,7 @@
 import orderModel from "../models/orderModel.js"
 import userModel from "../models/userModel.js"
 import Stripe from "stripe"
+// import { sendOrderConfirmationEmail } from "../services/emailService.js" // [À activer ultérieurement]
 
 
 // variables for payment
@@ -28,6 +29,19 @@ const placeOrder = async (req, res) => {
         await newOrder.save()
 
         await userModel.findByIdAndUpdate(userId, { cartData: {} })
+
+        /* ── [À ACTIVER ULTÉRIEUREMENT] Envoi de confirmation par email (COD) ──
+        const user = await userModel.findById(userId).catch(() => null)
+        const userEmail = user?.email || address?.email
+        const userName = user?.name || `${address?.firstName || ''} ${address?.lastName || ''}`.trim()
+
+        sendOrderConfirmationEmail({
+            order: newOrder,
+            userEmail,
+            userName
+        }).catch(err => console.error("[OrderController] Erreur envoi email:", err))
+        ────────────────────────────────────────────────────────────────────────── */
+
         res.json({ success: true, message: 'Commande passée avec succès' })
 
     } catch (error) {
@@ -95,8 +109,23 @@ const verifyStripe = async (req, res) => {
     const { orderId, success, userId } = req.body
     try {
         if (success === 'true') {
-            await orderModel.findByIdAndUpdate(orderId, { payment: true })
+            const updatedOrder = await orderModel.findByIdAndUpdate(orderId, { payment: true }, { new: true })
             await userModel.findByIdAndUpdate(userId, { cartData: {} })
+
+            /* ── [À ACTIVER ULTÉRIEUREMENT] Envoi de confirmation par email (STRIPE) ──
+            if (updatedOrder) {
+                const user = await userModel.findById(userId).catch(() => null)
+                const userEmail = user?.email || updatedOrder.address?.email
+                const userName = user?.name || `${updatedOrder.address?.firstName || ''} ${updatedOrder.address?.lastName || ''}`.trim()
+
+                sendOrderConfirmationEmail({
+                    order: updatedOrder,
+                    userEmail,
+                    userName
+                }).catch(err => console.error("[OrderController] Erreur envoi email Stripe:", err))
+            }
+            ────────────────────────────────────────────────────────────────────────── */
+
             res.json({ success: true })
         } else {
             await orderModel.findByIdAndDelete(orderId)

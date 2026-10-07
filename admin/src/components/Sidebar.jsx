@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
+  BarChart3,
   PackagePlus,
   List,
   ShoppingBag,
@@ -16,9 +17,10 @@ const Sidebar = ({ onLogout }) => {
   const links = [
     { to: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
     { to: '/add', icon: <PackagePlus size={20} />, label: 'Add Product' },
-    { to: '/list', icon: <List size={20} />, label: 'Products' },
     { to: '/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
-    { to: '/promos', icon: <Tag size={20} />, label: 'Codes Promo' },
+    { to: '/list', icon: <List size={20} />, label: 'Products' },
+    { to: '/promos', icon: <Tag size={20} />, label: 'Promo Codes' },
+    { to: '/stats', icon: <BarChart3 size={20} />, label: 'Statistics' },
   ]
 
   const linkBase =
@@ -28,21 +30,24 @@ const Sidebar = ({ onLogout }) => {
     <aside
       className={`${
         collapsed ? 'w-[78px]' : 'w-[260px]'
-      } min-h-screen bg-[#efefef] border-r border-black/5 flex flex-col transition-all duration-300 ease-in-out relative`}
+      } sticky top-0 h-screen shrink-0 self-start bg-[#efefef] border-r border-black/5 flex flex-col transition-all duration-300 ease-in-out z-40`}
     >
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-4 top-6 w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center border border-black/10 hover:scale-110 transition-transform z-50"
-      >
-        <ChevronLeft
-          size={12}
-          className={`text-gray-500 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
-        />
-      </button>
+      {/* Collapse Toggle (inside the sidebar, so it can never be clipped) */}
+      <div className={`flex items-center h-14 px-3 shrink-0 ${collapsed ? 'justify-center' : 'justify-end'}`}>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center border border-black/10 hover:scale-110 transition-transform cursor-pointer"
+        >
+          <ChevronLeft
+            size={14}
+            className={`text-gray-500 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
+          />
+        </button>
+      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-3 flex flex-col gap-1 mt-4">
+      {/* Navigation (scrolls internally if the screen is too short) */}
+      <nav className="flex-1 min-h-0 overflow-y-auto px-3 pb-3 flex flex-col gap-1">
         {links.map((link) => (
           <NavLink
             key={link.to}
@@ -67,13 +72,13 @@ const Sidebar = ({ onLogout }) => {
       <div className="p-3 border-t border-black/5">
         <button
           onClick={onLogout}
-          title={collapsed ? 'Logout' : undefined}
+          title={collapsed ? 'Log out' : undefined}
           className={`${linkBase} w-full bg-[#e63946] text-white hover:bg-[#d62839] shadow-sm ${
             collapsed ? 'justify-center px-0' : 'px-4'
           }`}
         >
           <LogOut size={18} />
-          {!collapsed && <span>Se déconnecter</span>}
+          {!collapsed && <span>Log out</span>}
         </button>
       </div>
     </aside>

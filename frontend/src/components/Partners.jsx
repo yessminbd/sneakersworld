@@ -12,14 +12,14 @@ const brands = [
     ),
   },
   {
-    name: 'Nike',
-    color: '#000000',
-    svg: (
-      <svg viewBox="0 0 120 40" fill="currentColor" className="h-8 w-auto">
-        <path d="M6 30 C20 10, 60 2, 114 8 C90 16, 40 22, 6 30Z" />
-      </svg>
-    ),
-  },
+  name: 'Nike',
+  color: '#000000',
+  svg: (
+    <svg viewBox="0 0 120 52" fill="currentColor" className="h-8 w-auto">
+      <path d="M116 6 C90 22 55 38 36 46 C24 51 12 46 4 34 C14 38 26 38 40 33 C62 25 92 14 116 6Z" />
+    </svg>
+  ),
+},
   {
     name: 'Puma',
     color: '#000000',

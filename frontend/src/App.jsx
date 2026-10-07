@@ -14,12 +14,13 @@ import Product from "./pages/Product";
 import Profile from "./pages/Profile";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import SizeGuide from "./pages/SizeGuide";
 
 export default function App() {
 
   return (
     <main className="overflow-x-hidden text-[#1B264F] bg-primaryLight">
-      <ToastContainer/>
+      <ToastContainer />
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -33,6 +34,9 @@ export default function App() {
         <Route path="/verify" element={<Verify />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/product/:productId" element={<Product />} />
+        <Route path="/size-guide" element={<SizeGuide />} />
+                {/* <Route path="/shipping-infos" element={<ShippingInfos />} /> */}
+
       </Routes>
       <Footer />
     </main>

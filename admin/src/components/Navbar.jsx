@@ -1,6 +1,6 @@
 import React from 'react'
-import { useLocation } from 'react-router-dom'
-import { Bell, Search } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Search, X } from 'lucide-react'
 import logo from '../assets/logo-sneakers-world.png'
 
 const pageTitles = {
@@ -10,9 +10,19 @@ const pageTitles = {
   '/orders': 'Orders',
 }
 
-const Navbar = () => {
+const Navbar = ({ search, setSearch }) => {
   const location = useLocation()
+  const navigate = useNavigate()
   const title = pageTitles[location.pathname] || 'Dashboard'
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value
+    setSearch(val)
+    // If user is on dashboard, add, promos, stats etc and starts searching, navigate to /list or /orders
+    if (val.trim() && location.pathname !== '/list' && location.pathname !== '/orders') {
+      navigate('/list')
+    }
+  }
 
   return (
     <header className="h-[76px] bg-[#efefef] border-b border-black/5 flex items-center justify-between px-6 sticky top-0 z-40">
@@ -25,21 +35,25 @@ const Navbar = () => {
 
       {/* Right */}
       <div className="flex items-center gap-3">
-        <div className="relative hidden md:flex items-center">
+        <div className="relative flex items-center">
           <Search size={14} className="absolute left-3 text-gray-400" />
           <input
             type="text"
-            placeholder="Search..."
-            className="pl-9 pr-4 py-2 bg-white border border-black/10 rounded-full text-xs w-48 focus:w-56 outline-none focus:ring-2 focus:ring-black/10 transition-all duration-300 font-medium text-[#1f1f23] placeholder:text-gray-400"
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search products or orders..."
+            className="pl-9 pr-8 py-2 bg-white border border-black/10 rounded-full text-xs w-48 focus:w-64 outline-none focus:ring-2 focus:ring-black/10 transition-all duration-300 font-medium text-[#1f1f23] placeholder:text-gray-400"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              <X size={13} />
+            </button>
+          )}
         </div>
-
-        <button className="w-9 h-9 rounded-full bg-white border border-black/10 flex items-center justify-center hover:bg-gray-100 transition-colors relative">
-          <Bell size={15} className="text-gray-600" />
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#e63946] rounded-full border-2 border-[#efefef]" />
-        </button>
-
-
       </div>
     </header>
   )

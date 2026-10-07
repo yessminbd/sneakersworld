@@ -1,6 +1,13 @@
-export const BACKEND_URL = 'http://localhost:4000'
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 
+// Business-logic constants — never change at runtime
 export const CATEGORIES = ['Women', 'Men', 'Kids']
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Fallback defaults used by useProductConfig when the backend is unreachable
+// or when no products exist yet.  Do NOT import these directly in pages —
+// use useProductConfig() instead.
+// ──────────────────────────────────────────────────────────────────────────────
 export const BRANDS = ['Adidas', 'Nike', 'Puma', 'New Balance', 'Reebok', 'Jordan', 'Vans', 'Converse']
 export const SIZES = ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46']
 export const COLORS = [

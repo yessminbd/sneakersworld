@@ -101,7 +101,6 @@ export default function ShopContextProvider({ children }) {
       };
     }
     setCartItems(cartData);
-    toast.success('Added to cart successfully!', { autoClose: 2000 });
   };
 
   // Compter le nombre d'articles dans le panier

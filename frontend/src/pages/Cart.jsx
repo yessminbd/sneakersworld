@@ -2,12 +2,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import Title from '../components/Title';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, ArrowRight, Truck, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LangContext';
 
 export default function Cart() {
-  const { products, currency, cartItems, updateQuantity, getCartAmount, delivery_fee } = useContext(ShopContext);
+  const { products, currency, cartItems, updateQuantity, getCartAmount, delivery_fee, token } = useContext(ShopContext);
   const { t } = useLang();
+  const navigate = useNavigate();
   const [cartData, setCartData] = useState([]);
 
   useEffect(() => {
@@ -42,6 +43,14 @@ export default function Cart() {
   const subtotal = getCartAmount();
   const total = subtotal === 0 ? 0 : subtotal + delivery_fee;
   const itemCount = cartData.reduce((sum, i) => sum + i.quantity, 0);
+
+  const handleCheckoutClick = () => {
+    if (!token) {
+      navigate('/login?redirect=place-order');
+    } else {
+      navigate('/place-order');
+    }
+  };
 
   return (
     <div className='bg-gradient-to-b from-primaryLight via-primaryLight to-gray-10/60 min-h-[calc(100vh-64px)]'>
@@ -186,18 +195,18 @@ export default function Cart() {
                   </div>
                 </div>
 
-                <Link
-                  to='/place-order'
-                  className='mt-6 w-full bg-white text-primary text-sm font-bold uppercase tracking-wider py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg'
+                <button
+                  type='button'
+                  onClick={handleCheckoutClick}
+                  className='mt-6 w-full bg-white text-primary text-sm font-bold uppercase tracking-wider py-4 rounded-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer'
                 >
                   {t.proceedToCheckout} <ArrowRight className='w-4 h-4' />
-                </Link>
+                </button>
 
                 <div className='mt-5 pt-5 border-t border-white/10 flex flex-col gap-2.5 text-xs text-white/50'>
                   <span className='flex items-center gap-2'>
                     <Truck className='w-4 h-4 text-white/70 shrink-0' /> {t.deliveryAcrossTunisia}
                   </span>
-
                 </div>
               </div>
             </div>

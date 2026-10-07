@@ -11,7 +11,7 @@ const Popular = () => {
 
     useEffect(() => {
         const data = products.filter((item) => item.popular);
-        setPopularProducts(data.slice(0, 4)); // Show top 4 popular items
+        setPopularProducts(data.slice(0, 4)); 
     }, [products]);
 
     return (

@@ -7,7 +7,7 @@ export const formatDate = (timestamp) => {
   if (!timestamp) return 'N/A'
   const d = new Date(timestamp)
   if (isNaN(d.getTime())) return 'N/A'
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -20,7 +20,7 @@ export const formatDateOnly = (timestamp) => {
   if (!timestamp) return 'N/A'
   const d = new Date(timestamp)
   if (isNaN(d.getTime())) return 'N/A'
-  return d.toLocaleDateString('fr-FR', {
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -34,36 +34,36 @@ export const formatDateOnly = (timestamp) => {
 export const exportOrdersToExcel = (orders, filterSummary = {}) => {
   const data = orders.map((order, index) => {
     const customerName = order.address
-      ? `${order.address.firstName || ''} ${order.address.lastName || ''}`.trim() || 'Client'
-      : 'Inconnu'
+      ? `${order.address.firstName || ''} ${order.address.lastName || ''}`.trim() || 'Customer'
+      : 'Unknown'
     const itemsDescription = Array.isArray(order.items)
       ? order.items
           .map(
             (i) =>
-              `${i.name || 'Produit'} (Taille: ${i.size || '-'}, Qté: ${i.quantity || 1}, Prix: ${i.price || 0} TND)`
+              `${i.name || 'Product'} (Size: ${i.size || '-'}, Qty: ${i.quantity || 1}, Price: ${i.price || 0} TND)`
           )
           .join(' | ')
-      : 'Aucun article'
+      : 'No items'
     const totalQty = Array.isArray(order.items)
       ? order.items.reduce((sum, i) => sum + (Number(i.quantity) || 1), 0)
       : 0
 
     return {
       '#': index + 1,
-      'ID Commande': order._id || 'N/A',
+      'Order ID': order._id || 'N/A',
       'Date': formatDate(order.date),
-      'Client': customerName,
-      'Téléphone': order.address?.phone || 'N/A',
+      'Customer': customerName,
+      'Phone': order.address?.phone || 'N/A',
       'Email': order.address?.email || 'N/A',
-      'Ville / Adresse': order.address
+      'City / Address': order.address
         ? `${order.address.city || ''}, ${order.address.street || ''} (${order.address.zipcode || ''})`.trim()
         : 'N/A',
-      'Articles commandés': itemsDescription,
-      'Total Articles': totalQty,
-      'Montant Total (TND)': Number(order.amount) || 0,
-      'Mode Paiement': order.paymentMethod || 'N/A',
-      'Statut Paiement': order.payment ? 'Payé' : 'En attente',
-      'Statut Commande': order.status || 'En attente',
+      'Ordered Items': itemsDescription,
+      'Total Items': totalQty,
+      'Total Amount (TND)': Number(order.amount) || 0,
+      'Payment Method': order.paymentMethod || 'N/A',
+      'Payment Status': order.payment ? 'Paid' : 'Pending',
+      'Order Status': order.status || 'Pending',
     }
   })
 
@@ -75,35 +75,35 @@ export const exportOrdersToExcel = (orders, filterSummary = {}) => {
     { wch: 5 },   // #
     { wch: 26 },  // ID
     { wch: 18 },  // Date
-    { wch: 22 },  // Client
-    { wch: 16 },  // Tel
+    { wch: 22 },  // Customer
+    { wch: 16 },  // Phone
     { wch: 24 },  // Email
-    { wch: 32 },  // Adresse
-    { wch: 45 },  // Articles
+    { wch: 32 },  // Address
+    { wch: 45 },  // Items
     { wch: 14 },  // Qty
-    { wch: 18 },  // Montant
-    { wch: 16 },  // Mode
-    { wch: 16 },  // Statut Pay
-    { wch: 18 },  // Statut
+    { wch: 18 },  // Amount
+    { wch: 16 },  // Method
+    { wch: 16 },  // Payment status
+    { wch: 18 },  // Status
   ]
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Commandes')
+  XLSX.utils.book_append_sheet(wb, ws, 'Orders')
 
   const totalAmount = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0)
   const metaData = [
-    { Propriété: 'Généré le', Valeur: formatDate(Date.now()) },
-    { Propriété: 'Total Commandes', Valeur: orders.length },
-    { Propriété: 'Chiffre d’Affaires Total', Valeur: `${totalAmount.toLocaleString('fr-FR')} TND` },
-    { Propriété: 'Filtre Statut', Valeur: filterSummary.status || 'Tous' },
-    { Propriété: 'Filtre Période', Valeur: filterSummary.period || 'Toutes' },
-    { Propriété: 'Filtre Mode Paiement', Valeur: filterSummary.paymentMethod || 'Tous' },
+    { Property: 'Generated on', Value: formatDate(Date.now()) },
+    { Property: 'Total Orders', Value: orders.length },
+    { Property: 'Total Revenue', Value: `${totalAmount.toLocaleString('en-US')} TND` },
+    { Property: 'Status Filter', Value: filterSummary.status || 'All' },
+    { Property: 'Period Filter', Value: filterSummary.period || 'All' },
+    { Property: 'Payment Method Filter', Value: filterSummary.paymentMethod || 'All' },
   ]
   const wsMeta = XLSX.utils.json_to_sheet(metaData)
   wsMeta['!cols'] = [{ wch: 25 }, { wch: 30 }]
-  XLSX.utils.book_append_sheet(wb, wsMeta, 'Résumé Filtres')
+  XLSX.utils.book_append_sheet(wb, wsMeta, 'Filters Summary')
 
   const dateStr = new Date().toISOString().slice(0, 10)
-  XLSX.writeFile(wb, `SneakersWorld_Commandes_${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `SneakersWorld_Orders_${dateStr}.xlsx`)
 }
 
 export const exportProductsToExcel = (products, filterSummary = {}) => {
@@ -120,15 +120,15 @@ export const exportProductsToExcel = (products, filterSummary = {}) => {
 
     return {
       '#': index + 1,
-      'ID Produit': product._id || 'N/A',
-      'Nom du Produit': product.name || 'N/A',
-      'Marque': product.subCategory || 'N/A',
-      'Catégories': cats,
-      'Prix (TND)': Number(product.price) || 0,
-      'Tailles': sizes,
-      'Couleurs': colors,
-      'Populaire': product.popular ? 'Oui' : 'Non',
-      'Date d’Ajout': formatDateOnly(product.date),
+      'Product ID': product._id || 'N/A',
+      'Product Name': product.name || 'N/A',
+      'Brand': product.subCategory || 'N/A',
+      'Categories': cats,
+      'Price (TND)': Number(product.price) || 0,
+      'Sizes': sizes,
+      'Colors': colors,
+      'Popular': product.popular ? 'Yes' : 'No',
+      'Date Added': formatDateOnly(product.date),
       'Description': (product.description || '').slice(0, 100),
     }
   })
@@ -139,35 +139,35 @@ export const exportProductsToExcel = (products, filterSummary = {}) => {
   ws['!cols'] = [
     { wch: 5 },   // #
     { wch: 26 },  // ID
-    { wch: 30 },  // Nom
-    { wch: 18 },  // Marque
-    { wch: 22 },  // Catégories
-    { wch: 14 },  // Prix
-    { wch: 24 },  // Tailles
-    { wch: 24 },  // Couleurs
-    { wch: 12 },  // Populaire
+    { wch: 30 },  // Name
+    { wch: 18 },  // Brand
+    { wch: 22 },  // Categories
+    { wch: 14 },  // Price
+    { wch: 24 },  // Sizes
+    { wch: 24 },  // Colors
+    { wch: 12 },  // Popular
     { wch: 15 },  // Date
     { wch: 45 },  // Description
   ]
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Produits')
+  XLSX.utils.book_append_sheet(wb, ws, 'Products')
 
   const avgPrice = products.length
     ? Math.round(products.reduce((s, p) => s + (Number(p.price) || 0), 0) / products.length)
     : 0
   const metaData = [
-    { Propriété: 'Généré le', Valeur: formatDate(Date.now()) },
-    { Propriété: 'Total Produits', Valeur: products.length },
-    { Propriété: 'Prix Moyen', Valeur: `${avgPrice} TND` },
-    { Propriété: 'Filtre Marque', Valeur: filterSummary.brand || 'Toutes' },
-    { Propriété: 'Filtre Catégorie', Valeur: filterSummary.category || 'Toutes' },
+    { Property: 'Generated on', Value: formatDate(Date.now()) },
+    { Property: 'Total Products', Value: products.length },
+    { Property: 'Average Price', Value: `${avgPrice} TND` },
+    { Property: 'Brand Filter', Value: filterSummary.brand || 'All' },
+    { Property: 'Category Filter', Value: filterSummary.category || 'All' },
   ]
   const wsMeta = XLSX.utils.json_to_sheet(metaData)
   wsMeta['!cols'] = [{ wch: 25 }, { wch: 30 }]
-  XLSX.utils.book_append_sheet(wb, wsMeta, 'Résumé Filtres')
+  XLSX.utils.book_append_sheet(wb, wsMeta, 'Filters Summary')
 
   const dateStr = new Date().toISOString().slice(0, 10)
-  XLSX.writeFile(wb, `SneakersWorld_Produits_${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `SneakersWorld_Products_${dateStr}.xlsx`)
 }
 
 export const exportStatsReportToExcel = (statsData, filterSummary = {}) => {
@@ -175,43 +175,43 @@ export const exportStatsReportToExcel = (statsData, filterSummary = {}) => {
 
   // 1. KPI Sheet
   const kpiData = [
-    { Indicateur: 'Date du Rapport', Valeur: formatDate(Date.now()) },
-    { Indicateur: 'Période analysée', Valeur: filterSummary.period || 'Toutes' },
-    { Indicateur: 'Chiffre d’Affaires Total', Valeur: `${statsData.revenue.toLocaleString('fr-FR')} TND` },
-    { Indicateur: 'Nombre Total de Commandes', Valeur: statsData.totalOrders },
-    { Indicateur: 'Panier Moyen', Valeur: `${statsData.avgBasket.toFixed(2)} TND` },
-    { Indicateur: 'Articles Vendus (Total)', Valeur: statsData.totalItemsSold },
-    { Indicateur: 'Commandes Livrées', Valeur: statsData.deliveredOrders },
-    { Indicateur: 'Taux de Livraison', Valeur: `${statsData.deliveryRate}%` },
+    { Metric: 'Report Date', Value: formatDate(Date.now()) },
+    { Metric: 'Analyzed Period', Value: filterSummary.Period || 'All' },
+    { Metric: 'Total Revenue', Value: `${(statsData.revenue || 0).toLocaleString('en-US')} TND` },
+    { Metric: 'Total Orders', Value: statsData.totalOrders || 0 },
+    { Metric: 'Average Order Value', Value: `${(statsData.avgBasket || 0).toFixed(2)} TND` },
+    { Metric: 'Items Sold (Total)', Value: statsData.totalItemsSold || 0 },
+    { Metric: 'Delivered Orders', Value: statsData.deliveredOrders || 0 },
+    { Metric: 'Delivery Rate', Value: `${statsData.deliveryRate || 0}%` },
   ]
   const wsKpi = XLSX.utils.json_to_sheet(kpiData)
   wsKpi['!cols'] = [{ wch: 30 }, { wch: 25 }]
-  XLSX.utils.book_append_sheet(wb, wsKpi, 'KPI Ventes')
+  XLSX.utils.book_append_sheet(wb, wsKpi, 'Sales KPIs')
 
   // 2. Status Breakdown
   const statusRows = (statsData.statusBreakdown || []).map((s) => ({
-    Statut: s.status,
-    'Nombre de Commandes': s.count,
-    'Pourcentage (%)': `${s.percentage}%`,
-    'Revenu Estimé (TND)': s.amount || 0,
+    Status: s.status,
+    'Orders Count': s.count,
+    'Percentage (%)': `${s.percentage}%`,
+    'Estimated Revenue (TND)': s.amount || 0,
   }))
   const wsStatus = XLSX.utils.json_to_sheet(statusRows)
   wsStatus['!cols'] = [{ wch: 22 }, { wch: 22 }, { wch: 18 }, { wch: 22 }]
-  XLSX.utils.book_append_sheet(wb, wsStatus, 'Répartition Statuts')
+  XLSX.utils.book_append_sheet(wb, wsStatus, 'Status Breakdown')
 
   // 3. Top Products Sold
   const topRows = (statsData.topProducts || []).map((p, idx) => ({
-    Rang: idx + 1,
-    'Nom du Produit': p.name,
-    'Quantité Vendue': p.qty,
-    'Chiffre d’Affaires Généré (TND)': p.totalRevenue,
+    Rank: idx + 1,
+    'Sneaker Name': p.name,
+    'Units Sold': p.qty,
+    'Generated Revenue (TND)': p.totalRevenue,
   }))
   const wsTop = XLSX.utils.json_to_sheet(topRows)
   wsTop['!cols'] = [{ wch: 8 }, { wch: 35 }, { wch: 18 }, { wch: 30 }]
-  XLSX.utils.book_append_sheet(wb, wsTop, 'Top Produits')
+  XLSX.utils.book_append_sheet(wb, wsTop, 'Top Sneakers')
 
   const dateStr = new Date().toISOString().slice(0, 10)
-  XLSX.writeFile(wb, `SneakersWorld_Rapport_Stats_${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `SneakersWorld_Analytics_Report_${dateStr}.xlsx`)
 }
 
 // -------------------------------------------------------------
@@ -238,12 +238,12 @@ const addPdfHeader = (doc, title, subtitle, filterSummary = {}) => {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(200, 200, 205)
-  doc.text('PANEL D’ADMINISTRATION & ANALYTIQUE', 14, 22)
+  doc.text('ADMINISTRATION & ANALYTICS PANEL', 14, 22)
 
   // Date on the right
   doc.setFontSize(8)
   doc.setTextColor(230, 230, 230)
-  const dateText = `Exporté le : ${formatDate(Date.now())}`
+  const dateText = `Exported on: ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
   const dateWidth = doc.getTextWidth(dateText)
   doc.text(dateText, pageWidth - dateWidth - 14, 18)
 
@@ -261,7 +261,7 @@ const addPdfHeader = (doc, title, subtitle, filterSummary = {}) => {
   // Filters summary tag
   const filterEntries = Object.entries(filterSummary).filter(([, v]) => Boolean(v))
   if (filterEntries.length > 0) {
-    const filterText = 'Filtres actifs : ' + filterEntries.map(([k, v]) => `${k}: ${v}`).join(' | ')
+    const filterText = 'Active Filters: ' + filterEntries.map(([k, v]) => `${k}: ${v}`).join(' | ')
     doc.setFontSize(8)
     doc.setTextColor(120, 120, 130)
     doc.text(filterText, 14, 52)
@@ -284,19 +284,19 @@ const addPdfFooter = (doc) => {
     doc.setDrawColor(220, 220, 225)
     doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12)
 
-    doc.text('Sneakers World - Rapport Confidentiel Interne', 14, pageHeight - 7)
-    const pageStr = `Page ${i} sur ${pageCount}`
+    doc.text('Sneakers World - Confidential Internal Analytics Report', 14, pageHeight - 7)
+    const pageStr = `Page ${i} of ${pageCount}`
     const pWidth = doc.getTextWidth(pageStr)
     doc.text(pageStr, pageWidth - pWidth - 14, pageHeight - 7)
   }
 }
 
-export const exportOrdersToPdf = (orders, filterSummary = {}) => {
+export const exportOrdersToPdf = (orders, filterSummary = {}, options = {}) => {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
   const startY = addPdfHeader(
     doc,
-    'RAPPORT DÉTAILLÉ DES COMMANDES',
-    `Liste filtrée de ${orders.length} commande(s) enregistrée(s).`,
+    options.title || 'DETAILED ORDERS REPORT',
+    `Filtered list of ${orders.length} recorded order(s).`,
     filterSummary
   )
 
@@ -312,12 +312,12 @@ export const exportOrdersToPdf = (orders, filterSummary = {}) => {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
   doc.setTextColor(31, 31, 35)
-  doc.text(`Total Commandes : ${orders.length}`, 20, startY + 9)
-  doc.text(`Chiffre d’Affaires : ${totalAmount.toLocaleString('fr-FR')} TND`, 90, startY + 9)
-  doc.text(`Panier Moyen : ${avgOrder} TND`, 190, startY + 9)
+  doc.text(`Total Orders: ${orders.length}`, 20, startY + 9)
+  doc.text(`Revenue: ${totalAmount.toLocaleString('en-US')} TND`, 90, startY + 9)
+  doc.text(`Average Order: ${avgOrder} TND`, 190, startY + 9)
 
   const tableRows = orders.map((o, idx) => {
-    const customer = o.address ? `${o.address.firstName || ''} ${o.address.lastName || ''}`.trim() : 'Client'
+    const customer = o.address ? `${o.address.firstName || ''} ${o.address.lastName || ''}`.trim() : 'Customer'
     const phone = o.address?.phone || '-'
     const city = o.address?.city || '-'
     const itemsCount = Array.isArray(o.items)
@@ -334,17 +334,17 @@ export const exportOrdersToPdf = (orders, filterSummary = {}) => {
       customer,
       phone,
       city,
-      itemsCount > 1 ? `${itemsCount} art. (${itemsDetail.slice(0, 30)}...)` : itemsDetail.slice(0, 35),
+      itemsCount > 1 ? `${itemsCount} items (${itemsDetail.slice(0, 30)}...)` : itemsDetail.slice(0, 35),
       `${o.amount || 0} TND`,
       o.paymentMethod || 'COD',
-      o.status || 'En attente',
+      o.status || 'Pending',
     ]
   })
 
   autoTable(doc, {
     startY: startY + 18,
     head: [
-      ['#', 'Réf', 'Date', 'Client', 'Tél', 'Ville', 'Articles', 'Montant', 'Paiement', 'Statut'],
+      ['#', 'Ref', 'Date', 'Customer', 'Phone', 'City', 'Items', 'Amount', 'Payment', 'Status'],
     ],
     body: tableRows,
     theme: 'grid',
@@ -380,15 +380,21 @@ export const exportOrdersToPdf = (orders, filterSummary = {}) => {
 
   addPdfFooter(doc)
   const dateStr = new Date().toISOString().slice(0, 10)
-  doc.save(`SneakersWorld_Commandes_${dateStr}.pdf`)
+  if (options.mode === 'print') {
+    doc.autoPrint()
+    const blobUrl = doc.output('bloburl')
+    window.open(blobUrl, '_blank')
+  } else {
+    doc.save(`SneakersWorld_Orders_${dateStr}.pdf`)
+  }
 }
 
 export const exportProductsToPdf = (products, filterSummary = {}) => {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const startY = addPdfHeader(
     doc,
-    'CATALOGUE DES PRODUITS',
-    `Inventaire filtré de ${products.length} référence(s).`,
+    'PRODUCT CATALOG',
+    `Filtered inventory of ${products.length} reference(s).`,
     filterSummary
   )
 
@@ -405,28 +411,28 @@ export const exportProductsToPdf = (products, filterSummary = {}) => {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(31, 31, 35)
-  doc.text(`Total Références : ${products.length}`, 20, startY + 7.5)
-  doc.text(`Prix Moyen : ${avgPrice} TND`, 85, startY + 7.5)
+  doc.text(`Total References: ${products.length}`, 20, startY + 7.5)
+  doc.text(`Average Price: ${avgPrice} TND`, 85, startY + 7.5)
   const popularCount = products.filter((p) => p.popular).length
-  doc.text(`Best-Sellers / Populaires : ${popularCount}`, 130, startY + 7.5)
+  doc.text(`Best-Sellers / Popular: ${popularCount}`, 130, startY + 7.5)
 
   const tableRows = products.map((p, idx) => {
     const cats = Array.isArray(p.category) ? p.category.join(', ') : p.category || '-'
     const sizes = Array.isArray(p.sizes) ? p.sizes.join(', ') : '-'
     return [
       idx + 1,
-      p.name || 'Sans nom',
+      p.name || 'Unnamed',
       p.subCategory || '-',
       cats,
       sizes,
-      p.popular ? '★ Oui' : 'Non',
+      p.popular ? '★ Yes' : 'No',
       `${p.price || 0} TND`,
     ]
   })
 
   autoTable(doc, {
     startY: startY + 16,
-    head: [['#', 'Nom Modèle', 'Marque', 'Catégorie', 'Tailles Disponibles', 'Populaire', 'Prix']],
+    head: [['#', 'Model Name', 'Brand', 'Category', 'Available Sizes', 'Popular', 'Price']],
     body: tableRows,
     theme: 'grid',
     headStyles: {
@@ -457,15 +463,15 @@ export const exportProductsToPdf = (products, filterSummary = {}) => {
 
   addPdfFooter(doc)
   const dateStr = new Date().toISOString().slice(0, 10)
-  doc.save(`SneakersWorld_Produits_${dateStr}.pdf`)
+  doc.save(`SneakersWorld_Products_${dateStr}.pdf`)
 }
 
-export const exportStatsReportToPdf = (statsData, filterSummary = {}) => {
+export const exportStatsReportToPdf = (statsData, filterSummary = {}, options = {}) => {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const startY = addPdfHeader(
     doc,
-    'BILAN & ANALYTIQUE DE VENTE',
-    `Rapport d'activité commerciale - Sneakers World`,
+    options.title || 'SALES SUMMARY & ANALYTICS',
+    'Business activity report - Sneakers World',
     filterSummary
   )
 
@@ -479,42 +485,42 @@ export const exportStatsReportToPdf = (statsData, filterSummary = {}) => {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(100, 100, 110)
-  doc.text('CHIFFRE D’AFFAIRES', 22, kpiY + 8)
-  doc.text('TOTAL COMMANDES', 75, kpiY + 8)
-  doc.text('PANIER MOYEN', 130, kpiY + 8)
+  doc.text('TOTAL REVENUE', 22, kpiY + 8)
+  doc.text('TOTAL ORDERS', 75, kpiY + 8)
+  doc.text('AVERAGE ORDER VALUE', 130, kpiY + 8)
 
   doc.setFontSize(14)
   doc.setTextColor(230, 57, 70) // Red brand color
-  doc.text(`${statsData.revenue.toLocaleString('fr-FR')} TND`, 22, kpiY + 17)
+  doc.text(`${(statsData.revenue || 0).toLocaleString('en-US')} TND`, 22, kpiY + 17)
 
   doc.setTextColor(31, 31, 35)
-  doc.text(`${statsData.totalOrders}`, 75, kpiY + 17)
-  doc.text(`${statsData.avgBasket.toFixed(2)} TND`, 130, kpiY + 17)
+  doc.text(`${statsData.totalOrders || 0}`, 75, kpiY + 17)
+  doc.text(`${(statsData.avgBasket || 0).toFixed(2)} TND`, 130, kpiY + 17)
 
   doc.setFontSize(7.5)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(110, 110, 120)
-  doc.text(`Articles vendus : ${statsData.totalItemsSold}`, 22, kpiY + 26)
-  doc.text(`Commandes livrées : ${statsData.deliveredOrders}`, 75, kpiY + 26)
-  doc.text(`Taux de livraison : ${statsData.deliveryRate}%`, 130, kpiY + 26)
+  doc.text(`Items sold: ${statsData.totalItemsSold || 0}`, 22, kpiY + 26)
+  doc.text(`Delivered orders: ${statsData.deliveredOrders || 0}`, 75, kpiY + 26)
+  doc.text(`Delivery rate: ${statsData.deliveryRate || 0}%`, 130, kpiY + 26)
 
   // Section 1: Orders by status
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(31, 31, 35)
-  doc.text('1. Répartition par Statut de Commande', 14, kpiY + 42)
+  doc.text('1. Orders Breakdown by Status', 14, kpiY + 42)
 
   const statusRows = (statsData.statusBreakdown || []).map((s) => [
     s.status,
     s.count,
     `${s.percentage}%`,
-    `${(s.amount || 0).toLocaleString('fr-FR')} TND`,
+    `${(s.amount || 0).toLocaleString('en-US')} TND`,
   ])
 
   autoTable(doc, {
     startY: kpiY + 46,
-    head: [['Statut', 'Commandes', 'Part de marché', 'Volume Estimé (TND)']],
-    body: statusRows,
+    head: [['Status', 'Orders', 'Share', 'Estimated Volume (TND)']],
+    body: statusRows.length > 0 ? statusRows : [['-', 'No orders', '-', '-']],
     theme: 'grid',
     headStyles: {
       fillColor: [31, 31, 35],
@@ -532,23 +538,23 @@ export const exportStatsReportToPdf = (statsData, filterSummary = {}) => {
   })
 
   // Section 2: Top Selling Products
-  const lastY = doc.lastAutoTable.finalY || kpiY + 95
+  const lastY = doc.lastAutoTable ? doc.lastAutoTable.finalY : kpiY + 95
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(31, 31, 35)
-  doc.text('2. Top des Produits les Plus Vendus', 14, lastY + 12)
+  doc.text('2. Top Selling Products', 14, lastY + 12)
 
   const topRows = (statsData.topProducts || []).map((p, idx) => [
     `#${idx + 1}`,
     p.name,
     p.qty,
-    `${(p.totalRevenue || 0).toLocaleString('fr-FR')} TND`,
+    `${(p.totalRevenue || 0).toLocaleString('en-US')} TND`,
   ])
 
   autoTable(doc, {
     startY: lastY + 16,
-    head: [['Rang', 'Modèle', 'Unités Vendues', 'Revenus Générés']],
-    body: topRows.length > 0 ? topRows : [['-', 'Aucune vente enregistrée', '-', '-']],
+    head: [['Rank', 'Model', 'Units Sold', 'Generated Revenue']],
+    body: topRows.length > 0 ? topRows : [['-', 'No sales recorded', '-', '-']],
     theme: 'grid',
     headStyles: {
       fillColor: [230, 57, 70],
@@ -565,7 +571,72 @@ export const exportStatsReportToPdf = (statsData, filterSummary = {}) => {
     },
   })
 
+  // Section 3: Filtered Orders Detail (if requested or available)
+  if (options.includeOrdersList && Array.isArray(options.orders) && options.orders.length > 0) {
+    doc.addPage('a4', 'portrait')
+    const page2Y = addPdfHeader(
+      doc,
+      '3. FILTERED ORDERS DETAILS',
+      `${options.orders.length} order(s) listed`,
+      filterSummary
+    )
+
+    const ordersTableRows = options.orders.map((o, idx) => {
+      const customer = o.address ? `${o.address.firstName || ''} ${o.address.lastName || ''}`.trim() : 'Customer'
+      const city = o.address?.city || '-'
+      const itemsCount = Array.isArray(o.items)
+        ? o.items.reduce((s, i) => s + (Number(i.quantity) || 1), 0)
+        : 0
+      const itemsSummary = Array.isArray(o.items)
+        ? o.items.map((i) => `${i.name} (x${i.quantity || 1})`).join(', ')
+        : '-'
+
+      return [
+        idx + 1,
+        o._id ? `#${o._id.slice(-6).toUpperCase()}` : '-',
+        formatDateOnly(o.date),
+        customer,
+        city,
+        itemsCount > 1 ? `${itemsCount} items (${itemsSummary.slice(0, 24)}...)` : itemsSummary.slice(0, 28),
+        `${o.amount || 0} TND`,
+        o.status || 'Pending',
+      ]
+    })
+
+    autoTable(doc, {
+      startY: page2Y + 4,
+      head: [['#', 'Ref', 'Date', 'Customer', 'City', 'Items', 'Amount', 'Status']],
+      body: ordersTableRows,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [31, 31, 35],
+        textColor: [255, 255, 255],
+        fontSize: 8,
+        halign: 'center',
+      },
+      bodyStyles: { fontSize: 7.5, cellPadding: 2 },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 8 },
+        1: { halign: 'center', cellWidth: 16, fontStyle: 'bold' },
+        2: { halign: 'center', cellWidth: 20 },
+        3: { cellWidth: 32 },
+        4: { cellWidth: 24 },
+        5: { cellWidth: 48 },
+        6: { halign: 'right', fontStyle: 'bold', cellWidth: 18 },
+        7: { halign: 'center', cellWidth: 24 },
+      },
+    })
+  }
+
   addPdfFooter(doc)
   const dateStr = new Date().toISOString().slice(0, 10)
-  doc.save(`SneakersWorld_Bilan_Stats_${dateStr}.pdf`)
+  const filename = options.filename || `SneakersWorld_Stats_Summary_${dateStr}.pdf`
+
+  if (options.mode === 'print') {
+    doc.autoPrint()
+    const blobUrl = doc.output('bloburl')
+    window.open(blobUrl, '_blank')
+  } else {
+    doc.save(filename)
+  }
 }

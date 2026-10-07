@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLang } from "../context/LangContext";
+import { ShopContext } from "../context/ShopContext";
 import sneaker1 from "../assets/slide1.jpg";
 import sneaker2 from "../assets/slide2.jpg";
 import sneaker3 from "../assets/slide3.jpg";
@@ -36,6 +37,7 @@ const slides = [
 
 export default function Hero() {
   const { t } = useLang();
+  const { token } = useContext(ShopContext);
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -127,7 +129,7 @@ export default function Hero() {
             </Link>
 
             <Link
-              to="/login"
+              to={token ? "/profile" : "/login"}
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full border-2 border-primary text-primary text-sm font-semibold hover:border-tertiary hover:text-tertiary transition-all duration-300 hover:scale-105 active:scale-95"
             >
               {t.joinUsBtn}

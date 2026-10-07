@@ -1,8 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useLang } from '../context/LangContext';
 
 const Item = ({ product }) => {
+    const { t } = useLang();
+
     const imageSrc = Array.isArray(product.image) ? product.image[0] : product.image;
+    // The category can be a string or an array of strings
+    const category = Array.isArray(product.category) ? product.category.join(', ') : product.category;
 
     return (
         <div className='group rounded-2xl bg-white border border-gray-10 hover:border-gray-20 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col'>
@@ -16,7 +21,7 @@ const Item = ({ product }) => {
                 />
                 {product.popular && (
                     <span className='absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary text-white shadow-sm'>
-                        Popular
+                        {t.popular}
                     </span>
                 )}
             </Link>
@@ -25,9 +30,9 @@ const Item = ({ product }) => {
             <div className='p-4 flex flex-col flex-1 justify-between'>
                 <div>
                     <div className='flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-50'>
-                        <span className='text-tertiary'>{product.subCategory || product.category}</span>
-                        {product.subCategory && product.category && (
-                            <span className='text-gray-30 text-[10px]'>{product.category}</span>
+                        <span className='text-tertiary'>{product.subCategory || category}</span>
+                        {product.subCategory && category && (
+                            <span className='text-gray-30 text-[10px]'>{category}</span>
                         )}
                     </div>
                     <h4 className='text-base font-bold text-primary line-clamp-1 mt-0.5 group-hover:text-tertiary transition-colors'>
@@ -46,7 +51,7 @@ const Item = ({ product }) => {
                         to={`/product/${product._id}`}
                         className='text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-white hover:bg-tertiary transition-colors'
                     >
-                        Details
+                        {t.details}
                     </Link>
                 </div>
             </div>

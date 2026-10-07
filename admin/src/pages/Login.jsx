@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import sneaker1 from '../assets/slide2.jpg'
 
-const BACKEND_URL = 'http://localhost:4000'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState('')

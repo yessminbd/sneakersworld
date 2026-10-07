@@ -12,9 +12,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
+  BarChart3,
 } from 'lucide-react'
 
-const BACKEND_URL = 'http://localhost:4000'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
 const WEEK = 7 * 24 * 60 * 60 * 1000
 
 const STATUS_STYLES = {
@@ -128,20 +129,29 @@ const Dashboard = ({ token }) => {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <p className="text-gray-500 text-sm mt-1 font-medium">
             Here's what's happening with your store today.
           </p>
         </div>
-        <button
-          onClick={() => fetchData(true)}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-black/5 shadow-sm text-sm font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
-        >
-          <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2.5">
+          <NavLink
+            to="/stats"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#e63946] text-white shadow-sm shadow-[#e63946]/20 text-sm font-semibold hover:bg-[#d62839] transition"
+          >
+            <BarChart3 size={15} />
+            Stats & Rapports PDF
+          </NavLink>
+          <button
+            onClick={() => fetchData(true)}
+            disabled={refreshing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-black/5 shadow-sm text-sm font-semibold text-gray-700 hover:shadow-md transition disabled:opacity-60 cursor-pointer"
+          >
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -187,7 +197,7 @@ const Dashboard = ({ token }) => {
             recentOrders.map((order) => (
               <div
                 key={order._id}
-                className="flex items-center justify-between px-5 py-3.5 border-b border-black/5 last:border-0 hover:bg-gray-50/70 transition-colors"
+                className="flex items-center justify-between px-5 py-3.5 border-b border-black/5 last:border-0  transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -205,7 +215,7 @@ const Dashboard = ({ token }) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`hidden sm:inline-block px-2.5 py-1 rounded-full text-[0.7rem] font-semibold border ${(STATUS_STYLES[order.status] || FALLBACK).badge
+                    className={`hidden bg-white sm:inline-block px-2.5 py-1 rounded-full text-[0.7rem] font-semibold border ${(STATUS_STYLES[order.status] || FALLBACK).badge
                       }`}
                   >
                     {order.status}

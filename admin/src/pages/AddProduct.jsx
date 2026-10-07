@@ -3,8 +3,8 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { Upload, Loader2 } from 'lucide-react'
 
-import { useLocalList } from '../hooks/useLocalList'
-import { BACKEND_URL, CATEGORIES, BRANDS, SIZES, COLORS } from '../components/constants.js'
+import { useProductConfig } from '../hooks/useProductConfig'
+import { BACKEND_URL, CATEGORIES } from '../components/constants.js'
 import { card, sectionTitle, label, field } from '../components/styles.js'
 import ImageUpload from '../components/ImageUpload.jsx'
 import BrandSelector from '../components/BrandSelector.jsx'
@@ -28,10 +28,8 @@ const AddProduct = ({ token }) => {
   const [selectedSizes, setSelectedSizes] = useState([])
   const [selectedColors, setSelectedColors] = useState([])
 
-  // Lists (defaults + custom saved in localStorage)
-  const [brands, addBrand] = useLocalList('customBrands', BRANDS)
-  const [sizes, addSize] = useLocalList('customSizes', SIZES)
-  const [colors, addColor] = useLocalList('customColors', COLORS, (c) => c.name.toLowerCase())
+  // Lists from backend (falls back to static defaults)
+  const { brands, sizes, colors, addBrand, addSize, addColor: addColorToConfig } = useProductConfig()
 
   // Helpers
   const toggle = (setter) => (item) =>
@@ -41,7 +39,7 @@ const AddProduct = ({ token }) => {
     setImages((prev) => prev.map((img, i) => (i === index ? file : img)))
 
   const handleAddColor = (color) => {
-    addColor(color)
+    addColorToConfig(color)
     setSelectedColors((prev) => [...prev, color.name])
     toast.success(`Color "${color.name}" added.`)
   }

@@ -209,4 +209,32 @@ const updateProduct = async (req, res) => {
     }
 }
 
-export { addProduct, listProduct, removeProduct, singleProduct, updateProduct }
+// Get dynamic config (brands, sizes, colors) from existing products
+const getConfig = async (req, res) => {
+    try {
+        const products = await productModel.find({}, { subCategory: 1, sizes: 1, colors: 1 })
+
+        const brandsSet = new Set()
+        const sizesSet = new Set()
+        const colorsSet = new Set()
+
+        products.forEach((p) => {
+            if (p.subCategory) brandsSet.add(p.subCategory.trim())
+            if (Array.isArray(p.sizes)) p.sizes.forEach((s) => sizesSet.add(String(s).trim()))
+            if (Array.isArray(p.colors)) p.colors.forEach((c) => {
+                if (typeof c === 'string') colorsSet.add(c.trim())
+            })
+        })
+
+        res.json({
+            success: true,
+            brands: [...brandsSet].sort(),
+            sizes: [...sizesSet].sort((a, b) => parseFloat(a) - parseFloat(b)),
+            colors: [...colorsSet].sort(),
+        })
+    } catch (error) {
+        res.json({ success: false, message: error.message })
+    }
+}
+
+export { addProduct, listProduct, removeProduct, singleProduct, updateProduct, getConfig }

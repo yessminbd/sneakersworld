@@ -112,26 +112,26 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
   const sc = getStatusConfig(order.status)
 
   const steps = [
-    { key: 'Order Placed', label: 'Ordered', step: 1 },
-    { key: 'Packing', label: 'Packing', step: 2 },
-    { key: 'Shipped', label: 'Shipped', step: 3 },
-    { key: 'Out for delivery', label: 'On Route', step: 4 },
-    { key: 'Delivered', label: 'Delivered', step: 5 },
+    { key: 'Order Placed', label: 'Ordered', step: 1, icon: ShoppingBag },
+    { key: 'Packing', label: 'Packing', step: 2, icon: Package },
+    { key: 'Shipped', label: 'Shipped', step: 3, icon: Truck },
+    { key: 'Out for delivery', label: 'On Route', step: 4, icon: Clock },
+    { key: 'Delivered', label: 'Delivered', step: 5, icon: CheckCircle2 },
   ]
 
   const currentStep = sc.step || 1
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
+      className="print-receipt-modal fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-black/5 my-8 max-h-[92vh] overflow-y-auto"
+        className="print-receipt-card w-full max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-black/5 my-8 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between pb-5 border-b border-black/5">
+        <div className="flex items-start justify-between pb-4 border-b border-black/5">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
@@ -149,28 +149,29 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="no-print w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X size={18} className="text-gray-500" />
           </button>
         </div>
 
-        {/* Timeline stepper */}
-        <div className="py-6 border-b border-black/5">
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">Delivery Progression</p>
-          <div className="relative flex items-center justify-between">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gray-100 w-full z-0" />
+        {/* Timeline stepper avec Icônes */}
+        <div className="py-4 border-b border-black/5">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-3">Delivery Progression</p>
+          <div className="relative flex items-center justify-between px-2">
+            <div className="absolute left-6 right-6 top-4 h-1 bg-gray-100 -translate-y-1/2 z-0" />
             <div
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#1f1f23] transition-all duration-500 z-0"
-              style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+              className="absolute left-6 top-4 h-1 bg-[#1f1f23] -translate-y-1/2 transition-all duration-500 z-0"
+              style={{ width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 12px)` }}
             />
             {steps.map((s) => {
               const done = s.step <= currentStep
               const isCurrent = s.step === currentStep
+              const StepIcon = s.icon
               return (
                 <div key={s.key} className="relative z-10 flex flex-col items-center">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-2xs ${
                       isCurrent
                         ? 'bg-[#e63946] text-white ring-4 ring-[#e63946]/20'
                         : done
@@ -178,9 +179,9 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
                         : 'bg-white border-2 border-gray-200 text-gray-400'
                     }`}
                   >
-                    {done ? <Check size={14} /> : s.step}
+                    <StepIcon size={14} />
                   </div>
-                  <span className={`text-[0.68rem] mt-1.5 font-bold ${isCurrent ? 'text-[#e63946]' : done ? 'text-[#1f1f23]' : 'text-gray-400'}`}>
+                  <span className={`text-[0.65rem] mt-1 font-bold whitespace-nowrap ${isCurrent ? 'text-[#e63946]' : done ? 'text-[#1f1f23]' : 'text-gray-400'}`}>
                     {s.label}
                   </span>
                 </div>
@@ -190,12 +191,12 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
         </div>
 
         {/* Customer & Address grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-5 border-b border-black/5 text-sm">
-          <div className="bg-[#efefef]/50 p-4 rounded-2xl border border-black/5">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-4 border-b border-black/5 text-sm">
+          <div className="bg-[#efefef]/50 p-3.5 rounded-2xl border border-black/5">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
               <User size={13} /> Customer
             </p>
-            <p className="font-extrabold text-[#1f1f23]">{order.address?.firstName} {order.address?.lastName}</p>
+            <p className="font-extrabold text-[#1f1f23] text-sm">{order.address?.firstName} {order.address?.lastName}</p>
             {order.address?.phone && (
               <p className="text-xs text-gray-600 font-semibold mt-1 flex items-center gap-1">
                 <Phone size={12} className="text-gray-400" />
@@ -210,8 +211,8 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
             )}
           </div>
 
-          <div className="bg-[#efefef]/50 p-4 rounded-2xl border border-black/5">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="bg-[#efefef]/50 p-3.5 rounded-2xl border border-black/5">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
               <MapPin size={13} /> Shipping Address
             </p>
             <p className="font-bold text-[#1f1f23] text-xs leading-relaxed">
@@ -225,27 +226,27 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
         </div>
 
         {/* Itemized List */}
-        <div className="py-5 border-b border-black/5">
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+        <div className="py-4 border-b border-black/5">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2.5">
             Articles ({order.items?.length || 0})
           </p>
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {order.items?.map((item, idx) => {
               const imgUrl = Array.isArray(item.image) ? item.image[0] : item.image
               return (
-                <div key={idx} className="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-gray-50 transition-colors">
-                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-[#efefef] border border-black/5 flex-shrink-0">
+                <div key={idx} className="flex items-center gap-3 p-2 rounded-xl bg-gray-50/50 border border-gray-100">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-[#efefef] border border-black/5 flex-shrink-0">
                     {imgUrl ? (
                       <img src={imgUrl} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        <Package size={20} />
+                        <Package size={18} />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-[#1f1f23] text-sm truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       {item.size && (
                         <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[0.65rem] font-bold">
                           Size {item.size}
@@ -269,9 +270,9 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
         </div>
 
         {/* Financial Summary */}
-        <div className="py-4 space-y-2 text-sm">
+        <div className="py-3 space-y-1.5 text-sm">
           {order.promoCode && (
-            <div className="flex justify-between text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-xl">
+            <div className="flex justify-between text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl">
               <span className="flex items-center gap-1">
                 <Tag size={13} /> Promo Applied ({order.promoCode})
               </span>
@@ -288,43 +289,34 @@ const OrderModal = ({ order, onClose, onUpdateStatus }) => {
               {order.payment ? 'Paid' : 'Unpaid / On Delivery'}
             </span>
           </div>
-          <div className="flex justify-between items-baseline pt-3 border-t border-black/5">
+          <div className="flex justify-between items-baseline pt-2.5 border-t border-black/5">
             <span className="font-bold text-[#1f1f23]">Total</span>
-            <span className="text-2xl font-black text-[#1f1f23] tracking-tight">{order.amount} TND</span>
+            <span className="text-xl font-black text-[#1f1f23] tracking-tight">{order.amount} TND</span>
           </div>
         </div>
 
         {/* Actions Footer */}
-        <div className="flex gap-3 mt-6 pt-4 border-t border-black/5">
-          <button
-            type="button"
-            onClick={() => window.print()}
-            className="px-4 py-2.5 rounded-xl border border-gray-300 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
-          >
-            <Printer size={15} /> Print Receipt
-          </button>
-          <div className="flex-1 flex justify-end gap-2">
-            {sc.next && (
-              <button
-                type="button"
-                onClick={() => {
-                  onUpdateStatus(order._id, sc.next)
-                  onClose()
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#1f1f23] text-white text-xs font-bold hover:bg-black transition-all flex items-center gap-2 shadow-md cursor-pointer"
-              >
-                Advance to {sc.next} <ChevronRight size={14} />
-              </button>
-            )}
+        {sc.next && (
+          <div className="no-print flex justify-end gap-2 mt-4 pt-3 border-t border-black/5">
+            <button
+              type="button"
+              onClick={() => {
+                onUpdateStatus(order._id, sc.next)
+                onClose()
+              }}
+              className="px-5 py-2.5 rounded-xl bg-[#1f1f23] text-white text-xs font-bold hover:bg-black transition-all flex items-center gap-2 shadow-md cursor-pointer active:scale-95"
+            >
+              Advance to {sc.next} <ChevronRight size={14} />
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
 /* ---------- Main Component ---------- */
-const Orders = ({ token }) => {
+const Orders = ({ token, globalSearch }) => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -333,6 +325,15 @@ const Orders = ({ token }) => {
   const [sortBy, setSortBy] = useState('newest')
   const [copiedId, setCopiedId] = useState(null)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [printingOrder, setPrintingOrder] = useState(null)
+
+  const handlePrint = (order) => {
+    setPrintingOrder(order)
+    setTimeout(() => {
+      window.print()
+      setPrintingOrder(null)
+    }, 150)
+  }
 
   const fetchOrders = useCallback(async (silent = false) => {
     silent ? setRefreshing(true) : setLoading(true)
@@ -389,7 +390,7 @@ const Orders = ({ token }) => {
 
   // Filtered & Sorted orders
   const filteredOrders = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = (search || globalSearch || '').trim().toLowerCase()
     let list = orders.filter((o) => {
       const matchSearch =
         !q ||
@@ -413,7 +414,7 @@ const Orders = ({ token }) => {
     })
 
     return list
-  }, [orders, search, filterStatus, sortBy])
+  }, [orders, search, globalSearch, filterStatus, sortBy])
 
   if (loading) {
     return (
@@ -440,15 +441,27 @@ const Orders = ({ token }) => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => fetchOrders(true)}
-          disabled={refreshing}
-          className="self-start sm:self-auto px-4 py-2 rounded-xl bg-white border border-black/5 hover:border-black/20 text-gray-700 text-xs font-bold shadow-xs flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <RotateCw size={14} className={refreshing ? 'animate-spin text-[#e63946]' : ''} />
-          {refreshing ? 'Updating...' : 'Refresh'}
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="px-4 py-2 rounded-xl bg-white border border-black/5 hover:border-black/20 text-gray-700 text-xs font-bold shadow-xs flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            title="Print Orders"
+          >
+            <Printer size={14} className="text-gray-500" />
+            <span>Print</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => fetchOrders(true)}
+            disabled={refreshing}
+            className="px-4 py-2 rounded-xl bg-white border border-black/5 hover:border-black/20 text-gray-700 text-xs font-bold shadow-xs flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+          >
+            <RotateCw size={14} className={refreshing ? 'animate-spin text-[#e63946]' : ''} />
+            {refreshing ? 'Updating...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards Row */}
@@ -864,6 +877,105 @@ const Orders = ({ token }) => {
           onClose={() => setSelectedOrder(null)}
           onUpdateStatus={updateStatus}
         />
+      )}
+
+      {/* Hidden printable receipt for printing directly from Orders page */}
+      {printingOrder && (
+        <div className="print-receipt-modal hidden print:block">
+          <div className="print-receipt-card bg-white p-6 rounded-2xl border border-gray-200 max-w-2xl mx-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between pb-3 border-b border-gray-200">
+              <div>
+                <h1 className="text-xl font-black tracking-tight text-gray-900">SNEAKERS WORLD</h1>
+                <p className="text-[11px] text-gray-500 font-semibold">Official Order Receipt</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-gray-600">
+                    Order #{printingOrder._id.slice(-8).toUpperCase()}
+                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-gray-100 font-bold text-gray-800">
+                    {printingOrder.status}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right text-xs text-gray-500 font-medium">
+                <p>{new Date(printingOrder.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                <p>{new Date(printingOrder.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+            </div>
+
+            {/* Customer & Shipping */}
+            <div className="grid grid-cols-2 gap-4 py-3 border-b border-gray-200 text-xs">
+              <div>
+                <p className="font-bold text-gray-400 uppercase text-[10px] tracking-wider mb-1">Customer</p>
+                <p className="font-bold text-gray-900">{printingOrder.address?.firstName} {printingOrder.address?.lastName}</p>
+                {printingOrder.address?.phone && <p className="text-gray-600 font-medium">Tel: {printingOrder.address.phone}</p>}
+                {printingOrder.address?.email && <p className="text-gray-600 font-medium">{printingOrder.address.email}</p>}
+              </div>
+              <div>
+                <p className="font-bold text-gray-400 uppercase text-[10px] tracking-wider mb-1">Delivery Address</p>
+                <p className="font-semibold text-gray-800">
+                  {printingOrder.address?.street && `${printingOrder.address.street}, `}
+                  {printingOrder.address?.city && `${printingOrder.address.city} `}
+                  {printingOrder.address?.zipCode && `(${printingOrder.address.zipCode})`}
+                </p>
+                <p className="text-gray-600 font-medium">{printingOrder.address?.country || 'Tunisia'}</p>
+              </div>
+            </div>
+
+            {/* Itemized Table */}
+            <div className="py-3 border-b border-gray-200">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-200 text-gray-400 uppercase text-[10px]">
+                    <th className="text-left pb-1 font-bold">Item</th>
+                    <th className="text-center pb-1 font-bold">Size</th>
+                    <th className="text-center pb-1 font-bold">Qty</th>
+                    <th className="text-right pb-1 font-bold">Price</th>
+                    <th className="text-right pb-1 font-bold">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {printingOrder.items?.map((item, idx) => (
+                    <tr key={idx} className="py-1.5">
+                      <td className="py-1.5 font-bold text-gray-900">{item.name}</td>
+                      <td className="py-1.5 text-center text-gray-600 font-semibold">{item.size || '-'}</td>
+                      <td className="py-1.5 text-center text-gray-600 font-semibold">×{item.quantity}</td>
+                      <td className="py-1.5 text-right text-gray-600">{item.price} TND</td>
+                      <td className="py-1.5 text-right font-bold text-gray-900">{item.price * item.quantity} TND</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Total breakdown */}
+            <div className="pt-3 space-y-1 text-xs">
+              <div className="flex justify-between text-gray-600">
+                <span>Payment Method</span>
+                <span className="font-bold text-gray-900 uppercase">{printingOrder.paymentMethod}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Payment Status</span>
+                <span className="font-bold text-gray-900">{printingOrder.payment ? 'Paid' : 'Cash on Delivery'}</span>
+              </div>
+              {printingOrder.promoCode && (
+                <div className="flex justify-between text-emerald-600 font-semibold">
+                  <span>Discount ({printingOrder.promoCode})</span>
+                  <span>-{printingOrder.discount || 0} TND</span>
+                </div>
+              )}
+              <div className="flex justify-between items-baseline pt-2 border-t border-gray-200 text-sm">
+                <span className="font-black text-gray-900">Total Amount</span>
+                <span className="text-lg font-black text-gray-900">{printingOrder.amount} TND</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-4 pt-2 border-t border-dashed border-gray-300 text-center text-[10px] text-gray-400 font-medium">
+              Thank you for shopping with Sneakers World!
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

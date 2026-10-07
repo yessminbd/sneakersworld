@@ -141,7 +141,6 @@ export default function Product() {
     }
 
     addToCart(productData._id, size || 'Standard', color || 'Standard', quantity);
-    toast.success(t.addedToCart);
   };
 
   // Direct checkout

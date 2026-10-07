@@ -15,7 +15,20 @@ const port = process.env.PORT || 4000
 
 // Middleware
 app.use(express.json()) // Pour lire le JSON dans les requêtes POST
-app.use(cors())         // Autoriser les appels depuis d'autres domaines (ex: React)
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:5173', 'http://localhost:5174']
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Autorise les appels sans origine (ex: Postman, mobile)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    callback(new Error('CORS: origin not allowed'))
+  },
+  credentials: true,
+}))
 
 connectDB()
 connectCloudinary()

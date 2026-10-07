@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { ShopContext } from '../context/ShopContext';
 import { useLang } from '../context/LangContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import sneaker1 from '../assets/slide1.jpg';
@@ -22,6 +22,8 @@ export default function Login() {
   const { setToken, backendUrl } = useContext(ShopContext);
   const { t } = useLang();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTarget = searchParams.get('redirect') ? `/${searchParams.get('redirect')}` : '/';
 
   const resetForm = () => {
     setName('');
@@ -49,7 +51,13 @@ export default function Login() {
 
         if (data.success) {
           toast.success(t.accountCreatedSuccess);
-          switchState('Login');
+          if (data.token) {
+            setToken(data.token);
+            localStorage.setItem('token', data.token);
+            navigate(redirectTarget);
+          } else {
+            switchState('Login');
+          }
         } else {
           toast.error(data.message);
         }
@@ -72,7 +80,7 @@ export default function Login() {
             }, 1000);
           } else {
             toast.success(t.welcomeBack);
-            navigate('/');
+            navigate(redirectTarget);
           }
         } else {
           toast.error(data.message);
