@@ -169,7 +169,14 @@ const userOrders = async (req, res) => {
 const updateStatus = async (req, res) => {
     try {
         const { orderId, status } = req.body
-        await orderModel.findByIdAndUpdate(orderId, { status })
+
+        // Si la commande est marquée comme Delivered → paiement automatiquement validé
+        const updateData = { status }
+        if (status === 'Delivered') {
+            updateData.payment = true
+        }
+
+        await orderModel.findByIdAndUpdate(orderId, updateData)
         res.json({ success: true, message: "Statut mis à jour" })
 
     } catch (error) {

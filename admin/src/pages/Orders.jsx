@@ -357,7 +357,13 @@ const Orders = ({ token, globalSearch }) => {
   const updateStatus = async (orderId, status) => {
     try {
       await axios.post(`${BACKEND_URL}/api/order/status`, { orderId, status }, { headers: { token } })
-      setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, status } : o)))
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o._id !== orderId) return o
+          // Si livré → paiement automatiquement validé
+          return { ...o, status, payment: status === 'Delivered' ? true : o.payment }
+        })
+      )
       toast.success(`Order updated to "${status}".`)
     } catch {
       toast.error('Error updating order status.')
