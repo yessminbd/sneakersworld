@@ -62,16 +62,27 @@ const normalizeCategories = (cat) => {
   return Array.from(uniqueMap.values())
 }
 
-/* ---------- Delete confirmation modal ---------- */
-const DeleteModal = ({ product, onCancel, onConfirm, deleting }) => {
+/* ---------- Delete confirmation modal (Single or Bulk) ---------- */
+const DeleteModal = ({ product, count, onCancel, onConfirm, deleting }) => {
   useEffect(() => {
-    if (!product) return
+    if (!product && !count) return
     const onKey = (e) => e.key === 'Escape' && onCancel()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [product, onCancel])
+  }, [product, count, onCancel])
 
-  if (!product) return null
+  if (!product && !count) return null
+
+  const title = product ? 'Delete product?' : `Delete ${count} product${count > 1 ? 's' : ''}?`
+  const subtitle = product ? (
+    <>
+      <span className="font-semibold text-gray-700">{product.name}</span> will be permanently removed from the catalog.
+    </>
+  ) : (
+    <>
+      <span className="font-semibold text-gray-700">{count} selected product{count > 1 ? 's' : ''}</span> will be permanently removed from the catalog.
+    </>
+  )
 
   return (
     <div
@@ -79,7 +90,7 @@ const DeleteModal = ({ product, onCancel, onConfirm, deleting }) => {
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-black/5"
+        className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-black/5 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between mb-4">
@@ -89,23 +100,20 @@ const DeleteModal = ({ product, onCancel, onConfirm, deleting }) => {
           <button
             type="button"
             onClick={onCancel}
-            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors cursor-pointer"
           >
             <X size={16} className="text-gray-500" />
           </button>
         </div>
 
-        <h3 className="font-extrabold text-[#1f1f23]">Delete product?</h3>
-        <p className="text-sm text-gray-500 mt-1">
-          <span className="font-semibold text-gray-700">{product.name}</span> will be permanently removed
-          from the catalog.
-        </p>
+        <h3 className="font-extrabold text-[#1f1f23]">{title}</h3>
+        <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
 
         <div className="flex gap-3 mt-6">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-3 rounded-xl border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex-1 py-3 rounded-xl border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -113,7 +121,7 @@ const DeleteModal = ({ product, onCancel, onConfirm, deleting }) => {
             type="button"
             onClick={onConfirm}
             disabled={deleting}
-            className="flex-1 py-3 rounded-xl bg-[#e63946] text-white text-sm font-bold hover:bg-[#d62839] transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60"
+            className="flex-1 py-3 rounded-xl bg-[#e63946] text-white text-sm font-bold hover:bg-[#d62839] transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
           >
             {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={15} />}
             Delete
@@ -133,6 +141,8 @@ const ListProducts = ({ token, globalSearch }) => {
   const [toDelete, setToDelete] = useState(null)
   const [toEdit, setToEdit] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [selectedIds, setSelectedIds] = useState([])
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
 
   const fetchProducts = async () => {
     try {
@@ -161,12 +171,37 @@ const ListProducts = ({ token, globalSearch }) => {
       if (res.data.success) {
         toast.success('Product deleted.')
         setProducts((prev) => prev.filter((p) => p._id !== toDelete._id))
+        setSelectedIds((prev) => prev.filter((id) => id !== toDelete._id))
         setToDelete(null)
       } else {
         toast.error(res.data.message)
       }
     } catch {
       toast.error('Error deleting product.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const confirmBulkDelete = async () => {
+    if (selectedIds.length === 0) return
+    setDeleting(true)
+    try {
+      const res = await axios.post(
+        `${BACKEND_URL}/api/product/remove`,
+        { ids: selectedIds },
+        { headers: { token } }
+      )
+      if (res.data.success) {
+        toast.success(res.data.message || `${selectedIds.length} products deleted.`)
+        setProducts((prev) => prev.filter((p) => !selectedIds.includes(p._id)))
+        setSelectedIds([])
+        setShowBulkDeleteModal(false)
+      } else {
+        toast.error(res.data.message)
+      }
+    } catch {
+      toast.error('Error deleting selected products.')
     } finally {
       setDeleting(false)
     }
@@ -204,6 +239,25 @@ const ListProducts = ({ token, globalSearch }) => {
     })
   }, [products, search, globalSearch, filterCat])
 
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    )
+  }
+
+  const isAllSelected =
+    filtered.length > 0 && filtered.every((p) => selectedIds.includes(p._id))
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const filteredSet = new Set(filtered.map((p) => p._id))
+      setSelectedIds((prev) => prev.filter((id) => !filteredSet.has(id)))
+    } else {
+      const newSet = new Set([...selectedIds, ...filtered.map((p) => p._id)])
+      setSelectedIds(Array.from(newSet))
+    }
+  }
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -214,11 +268,13 @@ const ListProducts = ({ token, globalSearch }) => {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-extrabold text-[#1f1f23] tracking-tight">Products</h2>
-        <p className="text-gray-500 text-sm mt-1 font-medium">
-          {products.length} product{products.length !== 1 ? 's' : ''} in catalog
-        </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-extrabold text-[#1f1f23] tracking-tight">Products</h2>
+          <p className="text-gray-500 text-sm mt-1 font-medium">
+            {products.length} product{products.length !== 1 ? 's' : ''} in catalog
+          </p>
+        </div>
       </div>
 
       {/* Filters */}
@@ -251,6 +307,40 @@ const ListProducts = ({ token, globalSearch }) => {
         </div>
       </div>
 
+      {/* Bulk selection action bar */}
+      {selectedIds.length > 0 && (
+        <div className="flex items-center justify-between bg-[#1f1f23] text-white px-5 py-3 rounded-2xl mb-4 shadow-lg animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={isAllSelected}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 rounded accent-[#e63946] cursor-pointer"
+            />
+            <span className="text-sm font-bold">
+              {selectedIds.length} product{selectedIds.length > 1 ? 's' : ''} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              Deselect all
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteModal(true)}
+              className="px-4 py-1.5 rounded-xl bg-[#e63946] hover:bg-[#d62839] text-white text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+            >
+              <Trash2 size={14} />
+              Delete selected ({selectedIds.length})
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Empty state */}
       {filtered.length === 0 ? (
         <div className={`${card} !p-12 text-center`}>
@@ -263,7 +353,16 @@ const ListProducts = ({ token, globalSearch }) => {
       ) : (
         <div className={`${card} !p-0 overflow-hidden`}>
           {/* Table header (desktop) */}
-          <div className="hidden md:grid grid-cols-[64px_1fr_130px_110px_100px_90px] gap-4 px-5 py-3 border-b border-black/5 bg-[#efefef]/60">
+          <div className="hidden md:grid grid-cols-[40px_64px_1fr_130px_110px_100px_90px] gap-4 px-5 py-3 border-b border-black/5 bg-[#efefef]/60 items-center">
+            <div className="flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={toggleSelectAll}
+                className="w-4 h-4 rounded border-gray-300 text-[#e63946] focus:ring-[#e63946] accent-[#e63946] cursor-pointer"
+                title="Select all"
+              />
+            </div>
             {['Image', 'Product', 'Category', 'Brand', 'Price', 'Actions'].map((h) => (
               <span key={h} className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-500">
                 {h}
@@ -272,94 +371,109 @@ const ListProducts = ({ token, globalSearch }) => {
           </div>
 
           {/* Rows */}
-          {filtered.map((p) => (
-            <div
-              key={p._id}
-              className="grid grid-cols-[64px_1fr_80px] md:grid-cols-[64px_1fr_130px_110px_100px_90px] gap-4 px-5 py-3.5 items-center border-b border-black/5 last:border-0 hover:bg-[#efefef]/40 transition-colors"
-            >
-              {/* Image */}
-              <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#efefef] border border-black/5">
-                <img src={p.image?.[0]} alt={p.name} className="w-full h-full object-cover" />
-              </div>
-
-              {/* Name + badges */}
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-[#1f1f23] text-sm truncate">{p.name}</p>
-                  {p.popular && (
-                    <Star size={13} className="text-amber-400 fill-amber-400 flex-shrink-0" />
-                  )}
+          {filtered.map((p) => {
+            const isSelected = selectedIds.includes(p._id)
+            return (
+              <div
+                key={p._id}
+                className={`grid grid-cols-[36px_64px_1fr_75px] md:grid-cols-[40px_64px_1fr_130px_110px_100px_90px] gap-4 px-5 py-3.5 items-center border-b border-black/5 last:border-0 transition-colors ${
+                  isSelected ? 'bg-red-50/40' : 'hover:bg-[#efefef]/40'
+                }`}
+              >
+                {/* Checkbox */}
+                <div className="flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelect(p._id)}
+                    className="w-4 h-4 rounded border-gray-300 text-[#e63946] focus:ring-[#e63946] accent-[#e63946] cursor-pointer"
+                  />
                 </div>
 
-                {/* Mobile info */}
-                <p className="md:hidden text-xs text-gray-500 font-medium mt-0.5">
-                  {normalizeCategories(p.category).join(', ') || '—'} · {p.subCategory} ·{' '}
-                  <span className="font-bold text-[#1f1f23]">{p.price} TND</span>
-                </p>
+                {/* Image */}
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#efefef] border border-black/5">
+                  <img src={p.image?.[0]} alt={p.name} className="w-full h-full object-cover" />
+                </div>
 
-                <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
-                  {(p.colors || []).slice(0, 4).map((c) => (
-                    <span
-                      key={c}
-                      title={c}
-                      className="w-3.5 h-3.5 rounded-full border border-black/20"
-                      style={{ background: colorHex(c) || '#d1d5db' }}
-                    />
-                  ))}
-                  {(p.colors || []).length > 4 && (
-                    <span className="text-[0.65rem] font-semibold text-gray-500">
-                      +{p.colors.length - 4}
-                    </span>
-                  )}
-                  {(p.sizes || []).length > 0 && (
-                    <span className="ml-1 px-2 py-0.5 rounded-full bg-[#e63946]/10 text-[#e63946] text-[0.65rem] font-bold">
-                      {p.sizes.length} sizes
-                    </span>
+                {/* Name + badges */}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-[#1f1f23] text-sm truncate">{p.name}</p>
+                    {p.popular && (
+                      <Star size={13} className="text-amber-400 fill-amber-400 flex-shrink-0" />
+                    )}
+                  </div>
+
+                  {/* Mobile info */}
+                  <p className="md:hidden text-xs text-gray-500 font-medium mt-0.5">
+                    {normalizeCategories(p.category).join(', ') || '—'} · {p.subCategory} ·{' '}
+                    <span className="font-bold text-[#1f1f23]">{p.price} TND</span>
+                  </p>
+
+                  <div className="flex gap-1.5 mt-1.5 flex-wrap items-center">
+                    {(p.colors || []).slice(0, 4).map((c) => (
+                      <span
+                        key={c}
+                        title={c}
+                        className="w-3.5 h-3.5 rounded-full border border-black/20"
+                        style={{ background: colorHex(c) || '#d1d5db' }}
+                      />
+                    ))}
+                    {(p.colors || []).length > 4 && (
+                      <span className="text-[0.65rem] font-semibold text-gray-500">
+                        +{p.colors.length - 4}
+                      </span>
+                    )}
+                    {(p.sizes || []).length > 0 && (
+                      <span className="ml-1 px-2 py-0.5 rounded-full bg-[#e63946]/10 text-[#e63946] text-[0.65rem] font-bold">
+                        {p.sizes.length} sizes
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Desktop columns */}
+                <div className="hidden md:flex flex-wrap gap-1 items-center">
+                  {normalizeCategories(p.category).length > 0 ? (
+                    normalizeCategories(p.category).map((cat) => (
+                      <span
+                        key={cat}
+                        className="px-2 py-0.5 rounded-md bg-[#1f1f23]/5 text-[#1f1f23] text-xs font-semibold"
+                      >
+                        {cat}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-gray-400 font-semibold">—</span>
                   )}
                 </div>
-              </div>
+                <span className="hidden md:block text-xs text-gray-600 font-semibold">{p.subCategory}</span>
+                <span className="hidden md:block text-sm font-extrabold text-[#1f1f23]">{p.price} TND</span>
 
-              {/* Desktop columns */}
-              <div className="hidden md:flex flex-wrap gap-1 items-center">
-                {normalizeCategories(p.category).length > 0 ? (
-                  normalizeCategories(p.category).map((cat) => (
-                    <span
-                      key={cat}
-                      className="px-2 py-0.5 rounded-md bg-[#1f1f23]/5 text-[#1f1f23] text-xs font-semibold"
-                    >
-                      {cat}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-xs text-gray-400 font-semibold">—</span>
-                )}
+                {/* Actions: Edit + Delete */}
+                <div className="flex items-center gap-1.5 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setToEdit(p)}
+                    aria-label={`Edit ${p.name}`}
+                    title="Edit product"
+                    className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-[#1f1f23] text-gray-700 hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setToDelete(p)}
+                    aria-label={`Delete ${p.name}`}
+                    title="Delete product"
+                    className="w-9 h-9 rounded-xl bg-[#e63946]/10 text-[#e63946] hover:bg-[#e63946] hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               </div>
-              <span className="hidden md:block text-xs text-gray-600 font-semibold">{p.subCategory}</span>
-              <span className="hidden md:block text-sm font-extrabold text-[#1f1f23]">{p.price} TND</span>
-
-              {/* Actions: Edit + Delete */}
-              <div className="flex items-center gap-1.5 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setToEdit(p)}
-                  aria-label={`Edit ${p.name}`}
-                  title="Edit product"
-                  className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-[#1f1f23] text-gray-700 hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setToDelete(p)}
-                  aria-label={`Delete ${p.name}`}
-                  title="Delete product"
-                  className="w-9 h-9 rounded-xl bg-[#e63946]/10 text-[#e63946] hover:bg-[#e63946] hover:text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-xs"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -373,13 +487,23 @@ const ListProducts = ({ token, globalSearch }) => {
         />
       )}
 
-      {/* Delete Modal */}
+      {/* Single Delete Modal */}
       <DeleteModal
         product={toDelete}
         onCancel={() => setToDelete(null)}
         onConfirm={confirmDelete}
         deleting={deleting}
       />
+
+      {/* Bulk Delete Modal */}
+      {showBulkDeleteModal && (
+        <DeleteModal
+          count={selectedIds.length}
+          onCancel={() => setShowBulkDeleteModal(false)}
+          onConfirm={confirmBulkDelete}
+          deleting={deleting}
+        />
+      )}
     </div>
   )
 }

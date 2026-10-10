@@ -520,7 +520,7 @@ export default function Stats({ token }) {
         title: pdfCustomTitle || 'SALES SUMMARY & ANALYTICS',
         includeOrdersList: pdfIncludeOrders,
         orders: filteredOrders,
-        filename: `SneakersWorld_Stats_${periodLabel}_${dateStr}.pdf`,
+        filename: `Shoe Box_Stats_${periodLabel}_${dateStr}.pdf`,
       })
       setShowPrintModal(false)
       toast.success('PDF report downloaded successfully')

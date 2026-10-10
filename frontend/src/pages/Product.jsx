@@ -525,7 +525,7 @@ export default function Product() {
             <div className="prose max-w-none text-gray-50 text-sm leading-relaxed space-y-3">
               <p>{productData.description}</p>
               <p>
-                Every pair of sneakers offered by <strong>Sneakers World</strong> is thoroughly inspected
+                Every pair of sneakers offered by <strong>Shoe Box</strong> is thoroughly inspected
                 to ensure top-notch build quality and optimal all-day comfort.
               </p>
             </div>

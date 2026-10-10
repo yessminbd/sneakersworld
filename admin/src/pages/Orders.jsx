@@ -892,7 +892,7 @@ const Orders = ({ token, globalSearch }) => {
             {/* Header */}
             <div className="flex items-start justify-between pb-3 border-b border-gray-200">
               <div>
-                <h1 className="text-xl font-black tracking-tight text-gray-900">SNEAKERS WORLD</h1>
+                <h1 className="text-xl font-black tracking-tight text-gray-900">SHOE BOX</h1>
                 <p className="text-[11px] text-gray-500 font-semibold">Official Order Receipt</p>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="font-mono text-xs font-bold text-gray-600">
@@ -978,7 +978,7 @@ const Orders = ({ token, globalSearch }) => {
 
             {/* Footer */}
             <div className="mt-4 pt-2 border-t border-dashed border-gray-300 text-center text-[10px] text-gray-400 font-medium">
-              Thank you for shopping with Sneakers World!
+              Thank you for shopping with Shoe Box!
             </div>
           </div>
         </div>

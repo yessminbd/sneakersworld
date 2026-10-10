@@ -26,7 +26,6 @@ function useInView(threshold = 0.2) {
   return [ref, inView];
 }
 
-/* Compteur animé : "240K+" → 0 … 240 puis "K+" */
 function Counter({ value, start }) {
   const match = String(value).match(/^(\d+)(.*)$/);
   const target = match ? parseInt(match[1], 10) : 0;
@@ -67,9 +66,9 @@ export default function About() {
   const [contactRef, contactIn] = useInView(0.2);
 
   const stats = [
-    { value: "240K+", label: t.statFollowers },
-    { value: "500+", label: t.statModels },
-    { value: "15K+", label: t.statCustomers },
+    { value: "11K+", label: t.statFollowers },
+    { value: "100+", label: t.statModels },
+    { value: "1K+", label: t.statCustomers },
     { value: "30+", label: t.statBrands },
   ];
 

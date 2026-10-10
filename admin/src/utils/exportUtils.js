@@ -103,7 +103,7 @@ export const exportOrdersToExcel = (orders, filterSummary = {}) => {
   XLSX.utils.book_append_sheet(wb, wsMeta, 'Filters Summary')
 
   const dateStr = new Date().toISOString().slice(0, 10)
-  XLSX.writeFile(wb, `SneakersWorld_Orders_${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `Shoe Box_Orders_${dateStr}.xlsx`)
 }
 
 export const exportProductsToExcel = (products, filterSummary = {}) => {
@@ -167,7 +167,7 @@ export const exportProductsToExcel = (products, filterSummary = {}) => {
   XLSX.utils.book_append_sheet(wb, wsMeta, 'Filters Summary')
 
   const dateStr = new Date().toISOString().slice(0, 10)
-  XLSX.writeFile(wb, `SneakersWorld_Products_${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `Shoe Box_Products_${dateStr}.xlsx`)
 }
 
 export const exportStatsReportToExcel = (statsData, filterSummary = {}) => {
@@ -211,11 +211,11 @@ export const exportStatsReportToExcel = (statsData, filterSummary = {}) => {
   XLSX.utils.book_append_sheet(wb, wsTop, 'Top Sneakers')
 
   const dateStr = new Date().toISOString().slice(0, 10)
-  XLSX.writeFile(wb, `SneakersWorld_Analytics_Report_${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `Shoe Box_Analytics_Report_${dateStr}.xlsx`)
 }
 
 // -------------------------------------------------------------
-// PDF EXPORT HELPERS (Styled with Sneakers World Branding)
+// PDF EXPORT HELPERS (Styled with Shoe Box Branding)
 // -------------------------------------------------------------
 
 const addPdfHeader = (doc, title, subtitle, filterSummary = {}) => {
@@ -233,7 +233,7 @@ const addPdfHeader = (doc, title, subtitle, filterSummary = {}) => {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(16)
   doc.setTextColor(255, 255, 255)
-  doc.text('SNEAKERS WORLD', 14, 15)
+  doc.text('SHOE BOX', 14, 15)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
@@ -284,7 +284,7 @@ const addPdfFooter = (doc) => {
     doc.setDrawColor(220, 220, 225)
     doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12)
 
-    doc.text('Sneakers World - Confidential Internal Analytics Report', 14, pageHeight - 7)
+    doc.text('Shoe Box - Confidential Internal Analytics Report', 14, pageHeight - 7)
     const pageStr = `Page ${i} of ${pageCount}`
     const pWidth = doc.getTextWidth(pageStr)
     doc.text(pageStr, pageWidth - pWidth - 14, pageHeight - 7)
@@ -385,7 +385,7 @@ export const exportOrdersToPdf = (orders, filterSummary = {}, options = {}) => {
     const blobUrl = doc.output('bloburl')
     window.open(blobUrl, '_blank')
   } else {
-    doc.save(`SneakersWorld_Orders_${dateStr}.pdf`)
+    doc.save(`Shoe Box_Orders_${dateStr}.pdf`)
   }
 }
 
@@ -463,7 +463,7 @@ export const exportProductsToPdf = (products, filterSummary = {}) => {
 
   addPdfFooter(doc)
   const dateStr = new Date().toISOString().slice(0, 10)
-  doc.save(`SneakersWorld_Products_${dateStr}.pdf`)
+  doc.save(`Shoe Box_Products_${dateStr}.pdf`)
 }
 
 export const exportStatsReportToPdf = (statsData, filterSummary = {}, options = {}) => {
@@ -471,7 +471,7 @@ export const exportStatsReportToPdf = (statsData, filterSummary = {}, options = 
   const startY = addPdfHeader(
     doc,
     options.title || 'SALES SUMMARY & ANALYTICS',
-    'Business activity report - Sneakers World',
+    'Business activity report - Shoe Box',
     filterSummary
   )
 
@@ -630,7 +630,7 @@ export const exportStatsReportToPdf = (statsData, filterSummary = {}, options = 
 
   addPdfFooter(doc)
   const dateStr = new Date().toISOString().slice(0, 10)
-  const filename = options.filename || `SneakersWorld_Stats_Summary_${dateStr}.pdf`
+  const filename = options.filename || `Shoe Box_Stats_Summary_${dateStr}.pdf`
 
   if (options.mode === 'print') {
     doc.autoPrint()

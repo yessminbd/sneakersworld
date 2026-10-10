@@ -1,7 +1,7 @@
 import { MapPin, Mail, Phone, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLang } from "../context/LangContext";
-import logo from "../assets/logo-sneakers-world.png";
+import logo from "../assets/shoebox_logo.png";
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL;
 
@@ -34,7 +34,7 @@ const YoutubeIcon = ({ className = "w-4 h-4" }) => (
 );
 
 const socials = [
-    { Icon: InstagramIcon, href: "https://www.instagram.com/sneakersworld913/", label: "Instagram" },
+    { Icon: InstagramIcon, href: "https://www.instagram.com/shoe.box.brand/", label: "Instagram" },
     { Icon: FacebookIcon, href: "#", label: "Facebook" },
 ];
 
@@ -79,7 +79,7 @@ export default function Footer() {
                 {/* Brand column */}
                 <div className="lg:col-span-2 flex flex-col gap-5">
                     <Link to="/" className="inline-block transition-opacity hover:opacity-80">
-                        <img src={logo} alt="Sneakers World" className="h-8 w-auto" />
+                        <img src={logo} alt="Shoe Box" className="h-8 w-auto" />
                     </Link>
                     <p className="text-sm text-white/50 leading-relaxed max-w-xs">
                         {t.footerSlogan}
@@ -89,7 +89,7 @@ export default function Footer() {
                     <div className="flex flex-col gap-2 text-sm text-white/50">
                         <span className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-tertiary shrink-0" />
-                        Tunisia
+                            Tunisia
                         </span>
                     </div>
 
@@ -133,12 +133,12 @@ export default function Footer() {
             {/* Bottom bar */}
             <div className="border-t border-white/10">
                 <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
-                    <p>© {new Date().getFullYear()} Sneakers World. {t.rightsReserved}</p>
+                    <p>© {new Date().getFullYear()} Shoe Box. {t.rightsReserved}</p>
                     <div className="flex items-center gap-6">
                         <span className="hover:text-white/60 transition-colors cursor-pointer">{t.privacyPolicy}</span>
                         <span className="hover:text-white/60 transition-colors cursor-pointer">{t.termsOfService}</span>
                         <a
-                            href="https://sneakersworldadminpanel.vercel.app/"
+                            href="https://shoeboxadminpanel.vercel.app/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 hover:text-white/60 transition-colors"

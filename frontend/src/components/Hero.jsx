@@ -11,27 +11,27 @@ import sneaker4 from "../assets/slide4.jpg";
 const slides = [
   {
     img: sneaker1,
-    label: "Adidas Campus",
+    label: "Nike P-6000",
     tag: "New Drop",
     accent: "#f9a8d4",
   },
   {
     img: sneaker2,
-    label: "New Balance 530",
+    label: "Asics Gel-NYC",
     tag: "Bestseller",
     accent: "#94a3b8",
   },
   {
     img: sneaker3,
-    label: "On Cloudmonster",
+    label: "Adidas Campus 00s",
     tag: "Exclusive",
     accent: "#d6c3a8",
   },
   {
     img: sneaker4,
-    label: "Puma Speedcat",
+    label: "Adidas Samba OG",
     tag: "Classic",
-    accent: "#92400e",
+    accent: "#984917ff",
   },
 ];
 

@@ -85,11 +85,19 @@ const listProduct = async (req, res) => {
     }
 }
 
-// Remove a product 
+// Remove a product or multiple products 
 const removeProduct = async (req, res) => {
     try {
-        await productModel.findByIdAndDelete(req.body.id)
-        res.json({ success: true, message: "Product removed successfully" })
+        const { id, ids } = req.body
+        if (ids && Array.isArray(ids) && ids.length > 0) {
+            await productModel.deleteMany({ _id: { $in: ids } })
+            return res.json({ success: true, message: `${ids.length} product(s) removed successfully` })
+        }
+        if (id) {
+            await productModel.findByIdAndDelete(id)
+            return res.json({ success: true, message: "Product removed successfully" })
+        }
+        return res.json({ success: false, message: "Product ID or IDs are required" })
     } catch (error) {
         res.json({ success: false, message: error.message })
     }
